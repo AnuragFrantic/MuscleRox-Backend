@@ -1,0 +1,69 @@
+const { Schema, Types, model } = require("mongoose");
+
+const addressSchema = new Schema({
+    first_name: String,
+    last_name: String,
+    email: String,
+    mobile: String,
+    user: {
+        type: Types.ObjectId,
+        ref: "User",
+        default: null    // guest checkout support
+    },
+
+
+    alternate_phone: {
+        type: String,
+        default: null
+    },
+
+    address_one: {
+        type: String,
+    },
+
+    address_two: {
+        type: String,
+        default: null
+    },
+
+    landmark: {
+        type: String,
+        default: null
+    },
+
+    town: {
+        type: String,
+    },
+
+    state: {
+        type: String,
+    },
+
+    country: {
+        type: String,
+        default: "India"
+    },
+
+    pincode: {
+        type: String,
+    },
+
+    address_type: {
+        type: String,
+        enum: ["home", "office", "other"],
+        default: "home"
+    },
+
+    is_default: {
+        type: Boolean,
+        default: false
+    },
+
+    is_active: {
+        type: Boolean,
+        default: true
+    }
+
+}, { timestamps: true });
+
+module.exports = model("Address", addressSchema);
