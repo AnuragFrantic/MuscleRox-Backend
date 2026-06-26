@@ -7,8 +7,15 @@ const {
     getContactById,
     deleteContact,
 } = require("../src/controller/ContactController");
+const Store = require("../src/middleware/Store");
 
-router.post("/", createContact);
+router.post(
+    "/",
+    Store("any").fields([
+        { name: "file", maxCount: 1 },
+    ]),
+    createContact
+);
 router.get("/", getContacts);
 router.get("/:id", getContactById);
 router.delete("/:id", deleteContact);

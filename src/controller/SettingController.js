@@ -92,7 +92,7 @@ exports.create_or_update_settings = async (req, res) => {
 exports.get_setting = async (req, res) => {
     try {
 
-        const { id, slug, keyword, type, title, media_value, parent, page = 1, perPage = 10, type_not } = req.query;
+        const { id, slug, keyword, type, title, media_value, parent, page = 1, perPage = 10, type_not, parenturl, colors } = req.query;
         const fdata = {};
         if (req.user) {
             if (req.user.role == "User") {
@@ -110,9 +110,39 @@ exports.get_setting = async (req, res) => {
         if (title) {
             fdata['title'] = { $regex: title, $options: "i" };
         }
-        if (slug) {
-            fdata['slug'] = slug;
+        if (parenturl) {
+            const parentSlug = parenturl.toLowerCase().trim();
+
+            const parentSetting = await Setting.findOne({
+                slug: parentSlug,
+            }).select("_id");
+
+
+
+            if (!parentSetting) {
+                return res.json({
+                    success: 0,
+                    message: "Parent not found",
+                });
+            }
+
+            fdata.parent = parentSetting._id;
         }
+        if (colors) {
+            const colorSlug = colors.toLowerCase().trim();
+            const parentSetting = await Setting.findOne({
+                title: colorSlug,
+            }).select("_id");
+            if (!parentSetting) {
+                return res.json({
+                    success: 0,
+                    message: "Parent not found",
+                });
+            }
+
+            fdata.colors = parentSetting._id;
+        }
+
         if (parent) {
             fdata['parent'] = parent;
         }
@@ -257,3 +287,31 @@ exports.menubar_web = async (req, res) => {
         return res.status(500).json({ success: 0, message: "Server error" });
     }
 };
+
+
+
+
+// const update_all_setting_slugs = async () => {
+//     try {
+//         const settings = await Setting.find({}, { _id: 1, title: 1 });
+
+//         let updatedCount = 0;
+
+//         for (const setting of settings) {
+//             const slug = makeSlug(setting.title);
+
+//             await Setting.updateOne(
+//                 { _id: setting._id },
+//                 { $set: { slug } }
+//             );
+
+//             updatedCount++;
+//         }
+
+//         console.log(`${updatedCount} setting slugs updated successfully.`);
+//     } catch (err) {
+//         console.error(err);
+//     }
+// };
+
+// update_all_setting_slugs();

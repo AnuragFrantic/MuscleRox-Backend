@@ -5,20 +5,8 @@ const testimonialSchema = new Schema({
         type: String,
         default: "testimonial"
     },
-    user: {
-        type: Types.ObjectId,
-        ref: "User",
-        default: null
-    },
-    product: {
-        type: Types.ObjectId,
-        ref: "Product",
-        default: null
-    },
-    variant: {
-        type: Types.ObjectId,
-        ref: "Variant",
-        default: null
+    rating: {
+        type: String,
     },
     name: String,
     sub_label: String,

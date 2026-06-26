@@ -3,7 +3,7 @@ const Testimonial = require("../models/Testimonial");
 const isValidObjectId = (id) => Types.ObjectId.isValid(id);
 exports.createTestimonial = async (req, res) => {
     try {
-        const { user, name, sub_label, sub_title, description, type = "testimonial" } = req.body;
+        const { user, name, sub_label, sub_title, description, rating, type = "testimonial" } = req.body;
 
         // Validation
         if (!name) return res.status(400).json({ success: 0, message: "Name is required" });
@@ -29,6 +29,7 @@ exports.createTestimonial = async (req, res) => {
             sub_title,
             description,
             file,
+            rating,
             file_type,
             type
         });

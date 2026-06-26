@@ -1,88 +1,109 @@
 const Contact = require("../models/Contact");
 
-// ✅ Create Contact (POST)
+// CREATE CONTACT
 exports.createContact = async (req, res) => {
     try {
-        const { name, email, message } = req.body;
+        const {
+            name,
+            company_name,
+            phone,
+            product,
+            type,
+            email,
+            message,
+        } = req.body;
 
-        if (!name || !email || !message) {
+        const file = req.files?.file?.[0]
+            ? req.files.file[0].path.replace(/\\/g, "/")
+            : null;
+
+        if (!name || !email) {
             return res.status(400).json({
-                success: false,
-                message: "Name, Email and Message are required",
+                success: 0,
+                message: "Name, Email, Product and Message are required",
             });
         }
 
         const contact = await Contact.create({
             name,
+            company_name,
+            phone,
+            product,
+            type,
             email,
             message,
+            file,
         });
 
         return res.status(201).json({
-            success: true,
+            success: 1,
             message: "Contact created successfully",
             data: contact,
         });
     } catch (error) {
-        console.error("Create Contact Error:", error);
+        console.log(error);
+
         return res.status(500).json({
-            success: false,
-            message: "Server Error",
-            error: error.message,
+            success: 0,
+            message: error.message,
         });
     }
 };
 
-// ✅ Get All Contacts (GET)
+// GET ALL CONTACTS
 exports.getContacts = async (req, res) => {
     try {
-        const contacts = await Contact.find().sort({ createdAt: -1 });
+        const contacts = await Contact.find()
+            .populate("product", "title")
+            .sort({ createdAt: -1 });
 
         return res.status(200).json({
-            success: true,
-            message: "Contacts fetched successfully",
+            success: 1,
+            count: contacts.length,
             data: contacts,
         });
     } catch (error) {
-        console.error("Get Contacts Error:", error);
+        console.log(error);
+
         return res.status(500).json({
-            success: false,
-            message: "Server Error",
-            error: error.message,
+            success: 0,
+            message: error.message,
         });
     }
 };
 
-// ✅ Get Single Contact by ID (GET)
+// GET SINGLE CONTACT
 exports.getContactById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const contact = await Contact.findById(id);
+        const contact = await Contact.findById(id).populate(
+            "product",
+            "title"
+        );
 
         if (!contact) {
             return res.status(404).json({
-                success: false,
+                success: 0,
                 message: "Contact not found",
             });
         }
 
         return res.status(200).json({
-            success: true,
-            message: "Contact fetched successfully",
+            success: 1,
             data: contact,
         });
     } catch (error) {
-        console.error("Get Contact By ID Error:", error);
+        console.log(error);
+
         return res.status(500).json({
-            success: false,
-            message: "Server Error",
-            error: error.message,
+            success: 0,
+            message: error.message,
         });
     }
 };
 
-// ✅ Delete Contact (DELETE)
+// DELETE CONTACT
 exports.deleteContact = async (req, res) => {
     try {
         const { id } = req.params;
@@ -91,21 +112,21 @@ exports.deleteContact = async (req, res) => {
 
         if (!contact) {
             return res.status(404).json({
-                success: false,
+                success: 0,
                 message: "Contact not found",
             });
         }
 
         return res.status(200).json({
-            success: true,
+            success: 1,
             message: "Contact deleted successfully",
         });
     } catch (error) {
-        console.error("Delete Contact Error:", error);
+        console.log(error);
+
         return res.status(500).json({
-            success: false,
-            message: "Server Error",
-            error: error.message,
+            success: 0,
+            message: error.message,
         });
     }
 };

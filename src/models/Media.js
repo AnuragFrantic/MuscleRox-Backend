@@ -1,21 +1,9 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const fileSchema = new Schema(
-    {
-        file_name: {
-            type: String,
-            required: true,
-        },
-        file: {
-            type: String,
-            required: true,
-        },
-    },
-    { _id: false }
-);
 
-const productSchema = new Schema(
+
+const mediaSchema = new Schema(
     {
         title: {
             type: String,
@@ -42,22 +30,13 @@ const productSchema = new Schema(
             default: "",
         },
 
-        category: {
-            type: Schema.Types.ObjectId,
-            ref: "Setting",
-            required: true,
-        },
-        colors: {
+        media_category: {
             type: Schema.Types.ObjectId,
             ref: "Setting",
             required: true,
         },
 
-        subcategory: {
-            type: Schema.Types.ObjectId,
-            ref: "Setting",
-            required: true,
-        },
+
 
         image: {
             type: String,
@@ -66,9 +45,6 @@ const productSchema = new Schema(
 
 
 
-        data_sheet: [fileSchema],
-
-        request_sample: [fileSchema],
 
         seo_title: {
             type: String,
@@ -101,4 +77,4 @@ const productSchema = new Schema(
     }
 );
 
-module.exports = mongoose.model("Product", productSchema);
+module.exports = mongoose.model("Media", mediaSchema);

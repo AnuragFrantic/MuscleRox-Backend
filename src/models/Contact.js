@@ -1,21 +1,54 @@
-// Import dependencies
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-// Contact Schema with SEO Fields
-const contactSchema = new mongoose.Schema({
+const contactSchema = new Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+            trim: true,
+        },
 
+        company_name: {
+            type: String,
+            default: "",
+        },
 
-    name: { type: String },
-    email: { type: String },
-    message: { type: String },
+        file: {
+            type: String
+        },
 
+        phone: {
+            type: String,
+            default: "",
+        },
 
-    createdAt: { type: Date, default: Date.now },
-});
+        product: {
+            type: Schema.Types.ObjectId,
+            ref: "Product",
+            required: false,
+        },
 
+        type: {
+            type: String,
+            default: "",
+        },
 
-const Contact = mongoose.model("Contact", contactSchema);
+        email: {
+            type: String,
+            required: true,
+            trim: true,
+            lowercase: true,
+        },
 
+        message: {
+            type: String,
+            required: false,
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
 
-
-module.exports = Contact;
+module.exports = mongoose.model("Contact", contactSchema);

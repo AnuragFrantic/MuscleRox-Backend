@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const Setting = require("../models/Setting");
 
 const makeSlug = (title) => {
     return title
@@ -21,6 +22,7 @@ exports.createProduct = async (req, res) => {
             subcategory,
             seo_title,
             seo_description,
+            colors,
             seo_keywords,
             sort_order,
         } = req.body;
@@ -40,7 +42,7 @@ exports.createProduct = async (req, res) => {
         const product = await Product.create({
             title,
             slug: makeSlug(title),
-
+            colors,
             short_description,
             description,
             category,
@@ -147,13 +149,50 @@ exports.getProducts = async (req, res) => {
             filter.subcategory = req.query.subcategory;
         }
 
+        if (req.query.categorySlug) {
+            const category = await Setting.findOne({
+                slug: makeSlug(req.query.categorySlug),
+            }).select("_id");
+
+            if (!category) {
+                return res.json({
+                    success: 1,
+                    count: 0,
+                    data: [],
+                });
+            }
+
+            filter.category = category._id;
+        }
+
+        if (req.query.subcategorySlug) {
+            const subCategory = await Setting.findOne({
+                slug: makeSlug(req.query.subcategorySlug),
+            }).select("_id");
+
+            if (!subCategory) {
+                return res.json({
+                    success: 1,
+                    count: 0,
+                    data: [],
+                });
+            }
+
+            filter.subcategory = subCategory._id;
+        }
+
+        if (req.query.slug) {
+            filter.slug = req.query.slug;
+        }
+
         if (req.query.isActive !== undefined) {
             filter.isActive = req.query.isActive;
         }
 
         const products = await Product.find(filter)
-            .populate("category", "title")
-            .populate("subcategory", "title")
+            .populate("category", "title slug")
+            .populate("subcategory", "title slug")
+            .populate("colors", "title slug")
             .sort({ sort_order: 1, createdAt: -1 });
 
         return res.json({
@@ -178,7 +217,9 @@ exports.getProduct = async (req, res) => {
 
         const product = await Product.findById(id)
             .populate("category", "title")
-            .populate("subcategory", "title");
+            .populate("subcategory", "title")
+            .populate("colors", "title");
+
 
         if (!product) {
             return res.status(404).json({
@@ -218,6 +259,52 @@ exports.deleteProduct = async (req, res) => {
         return res.json({
             success: 1,
             message: "Product deleted successfully",
+        });
+    } catch (error) {
+        console.log(error);
+
+        return res.status(500).json({
+            success: 0,
+            message: error.message,
+        });
+    }
+};
+
+
+
+// GET RELATED PRODUCTS
+exports.getRelatedProducts = async (req, res) => {
+    try {
+        const { category, productId } = req.query;
+
+        if (!category) {
+            return res.status(400).json({
+                success: 0,
+                message: "Category is required",
+            });
+        }
+
+        const filter = {
+            category,
+            isActive: true,
+        };
+
+        // Exclude current product
+        if (productId) {
+            filter._id = { $ne: productId };
+        }
+
+        const products = await Product.find(filter)
+            .populate("category", "title")
+            .populate("subcategory", "title")
+            .populate("colors", "title")
+
+            .sort({ sort_order: 1, createdAt: -1 });
+
+        return res.json({
+            success: 1,
+            count: products.length,
+            data: products,
         });
     } catch (error) {
         console.log(error);

@@ -12,6 +12,9 @@ const schema = new Schema({
         type: String
     },
     file_type: String,
+    top_heading: {
+        type: String
+    },
     heading: {
         type: String
     },
@@ -21,7 +24,8 @@ const schema = new Schema({
     buttons: [
         {
             btn_label: String,
-            btn_classes: String
+            btn_classes: String,
+            link: String
         }
     ],
     paragraph: String
