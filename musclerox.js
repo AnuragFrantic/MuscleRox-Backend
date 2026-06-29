@@ -89,5 +89,5 @@ app.use('/api/v1/team', TeamRoute);
 
 
 server.listen(port, () => {
-    console.log(`Tara ecommerce api started at https://localhost:${port}`);
+    console.log(`MuscleRox api started at https://localhost:${port}`);
 });
