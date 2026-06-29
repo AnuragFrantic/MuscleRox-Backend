@@ -165,6 +165,22 @@ exports.getProducts = async (req, res) => {
             filter.category = category._id;
         }
 
+        if (req.query.colors) {
+            const colors = await Setting.findOne({
+                title: req.query.colors,
+            }).select("_id");
+
+            if (!colors) {
+                return res.json({
+                    success: 1,
+                    count: 0,
+                    data: [],
+                });
+            }
+
+            filter.colors = colors._id;
+        }
+
         if (req.query.subcategorySlug) {
             const subCategory = await Setting.findOne({
                 slug: makeSlug(req.query.subcategorySlug),
@@ -187,6 +203,15 @@ exports.getProducts = async (req, res) => {
 
         if (req.query.isActive !== undefined) {
             filter.isActive = req.query.isActive;
+        }
+
+
+        // Search by title
+        if (req.query.search) {
+            filter.title = {
+                $regex: req.query.search,
+                $options: "i",
+            };
         }
 
         const products = await Product.find(filter)

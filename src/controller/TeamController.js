@@ -4,11 +4,11 @@ const create_team = async (req, res) => {
     try {
         const { name, position, link, description, isActive } = req.body;
 
-        if (!name || !position) {
+        if (!name) {
             return res.json({
-                errors: [{ path: 'name/position', msg: 'Name and position are required' }],
+                errors: [{ path: 'name', msg: 'Name  are required' }],
                 success: 0,
-                message: "Name and position are required",
+                message: "Name  are required",
                 data: []
             });
         }
