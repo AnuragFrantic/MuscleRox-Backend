@@ -97,13 +97,13 @@ exports.updateProduct = async (req, res) => {
         }
 
         if (req.files?.image?.length) {
-            updateData.image = req.files.image[0].filename;
+            updateData.image = req.files.image[0].path.replace(/\\/g, "/");
         }
 
         if (req.files?.data_sheet?.length) {
             updateData.data_sheet = req.files.data_sheet.map((file) => ({
                 file_name: file.originalname,
-                file: file.filename,
+                file: file.path.replace(/\\/g, "/"),
             }));
         }
 
