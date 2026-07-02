@@ -68,7 +68,7 @@ const productSchema = new Schema(
 
         data_sheet: [fileSchema],
 
-        request_sample: [fileSchema],
+        safety_data_sheet: [fileSchema],
 
         seo_title: {
             type: String,

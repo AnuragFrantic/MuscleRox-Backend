@@ -38,6 +38,12 @@ exports.createProduct = async (req, res) => {
             })) || [];
 
 
+        const safety_data_sheet =
+            req.files?.safety_data_sheet?.map((file) => ({
+                file_name: file.originalname,
+                file: file.path.replace(/\\/g, "/"),
+            })) || [];
+
 
         const product = await Product.create({
             title,
@@ -49,7 +55,7 @@ exports.createProduct = async (req, res) => {
             subcategory,
             image,
             data_sheet,
-
+            safety_data_sheet,
             seo_title,
             seo_description,
             seo_keywords:
@@ -102,6 +108,13 @@ exports.updateProduct = async (req, res) => {
 
         if (req.files?.data_sheet?.length) {
             updateData.data_sheet = req.files.data_sheet.map((file) => ({
+                file_name: file.originalname,
+                file: file.path.replace(/\\/g, "/"),
+            }));
+        }
+
+        if (req.files?.safety_data_sheet?.length) {
+            updateData.safety_data_sheet = req.files.safety_data_sheet.map((file) => ({
                 file_name: file.originalname,
                 file: file.path.replace(/\\/g, "/"),
             }));
