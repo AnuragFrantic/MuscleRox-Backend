@@ -11,6 +11,8 @@ router.post(
     Store("any").fields([
         { name: "image", maxCount: 1 },
         { name: "data_sheet", maxCount: 20 },
+        { name: "safety_data_sheet", maxCount: 20 },
+
     ]),
     createProduct
 );
@@ -20,6 +22,7 @@ router.put(
     Store("any").fields([
         { name: "image", maxCount: 1 },
         { name: "data_sheet", maxCount: 20 },
+        { name: "safety_data_sheet", maxCount: 20 },
     ]),
     updateProduct
 );
