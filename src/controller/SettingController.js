@@ -17,7 +17,7 @@ exports.create_setting = async (req, res) => {
         }
         const data = { ...req.body };
         // const media_value = req.body.media_value;
-        const url = makeSlug(req.body.title + "-" + req.body.media_value);
+        const url = makeSlug(req.body.title);
         if (req.file) {
             data['file'] = req.file.path
         }
@@ -195,12 +195,12 @@ exports.delete_setting = async (req, res) => {
 exports.update_setting = async (req, res) => {
     try {
         const data = { ...req.body };
-        const media_value = req.body.media_value;
+        const title = req.body.title;
         if (req.file) {
             data['file'] = req.file.path
         }
-        if (media_value) {
-            const url = makeSlug(media_value);
+        if (title) {
+            const url = makeSlug(title);
             data['slug'] = url;
         }
         const resp = await Setting.findOneAndUpdate({ _id: req.params.id }, { $set: { ...data } }, { new: true });
