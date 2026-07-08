@@ -4,12 +4,12 @@ const Store = require("../src/middleware/Store");
 
 const { GuestAuth } = require("../src/middleware/GuestAuth");
 const { Auth } = require("../src/middleware/Auth");
-const { createProduct, updateProduct, getProducts, getProduct, deleteProduct, getRelatedProducts } = require("../src/controller/ProductController");
+const { createProduct, updateProduct, getProducts, getProduct, deleteProduct, getRelatedProducts, deleteProductImage } = require("../src/controller/ProductController");
 const router = Router();
 router.post(
     "/",
     Store("any").fields([
-        { name: "image", maxCount: 1 },
+        { name: "images", maxCount: 10 },
         { name: "data_sheet", maxCount: 20 },
         { name: "safety_data_sheet", maxCount: 20 },
 
@@ -20,7 +20,7 @@ router.post(
 router.put(
     "/:id",
     Store("any").fields([
-        { name: "image", maxCount: 1 },
+        { name: "images", maxCount: 10 },
         { name: "data_sheet", maxCount: 20 },
         { name: "safety_data_sheet", maxCount: 20 },
     ]),
@@ -30,6 +30,7 @@ router.get("/related", getRelatedProducts);
 router.get("/", getProducts);
 router.get("/:id", getProduct);
 router.delete("/:id", deleteProduct);
+router.delete("/:id/image/:imageId", deleteProductImage);
 
 
 module.exports = router;

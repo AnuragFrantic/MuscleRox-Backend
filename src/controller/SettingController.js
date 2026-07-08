@@ -31,6 +31,7 @@ exports.create_setting = async (req, res) => {
 exports.create_or_update_settings = async (req, res) => {
     try {
         const settings = [];
+        console.log("request body:", req.body);
         for (const key in req.body) {
             settings.push({
                 title: key.replace(/_/g, ' '),
@@ -46,6 +47,22 @@ exports.create_or_update_settings = async (req, res) => {
                 media_value: req.files.logo[0].path
             });
         }
+
+        if (req.files?.footer_logo) {
+            settings.push({
+                title: 'footer_logo',
+                type: 'footer_logo',
+                media_value: req.files.footer_logo[0].path
+            });
+        }
+        if (req.files?.footer_under_logo) {
+            settings.push({
+                title: 'footer_under_logo',
+                type: 'footer_under_logo',
+                media_value: req.files.footer_under_logo[0].path
+            });
+        }
+
 
         if (req.files?.favicon) {
             settings.push({
@@ -92,8 +109,11 @@ exports.create_or_update_settings = async (req, res) => {
 exports.get_setting = async (req, res) => {
     try {
 
-        const { id, slug, keyword, type, title, media_value, parent, page = 1, perPage = 10, type_not, parenturl, colors } = req.query;
+        const { id, slug, keyword, type, title, media_value, parent, page = 1, perPage = 10, type_not, parenturl, colors, position } = req.query;
         const fdata = {};
+        if (position !== undefined && position !== "") {
+            fdata.position = Number(position);
+        }
         if (req.user) {
             if (req.user.role == "User") {
                 fdata['isActive'] = true;
@@ -152,7 +172,7 @@ exports.get_setting = async (req, res) => {
         if (type_not) {
             fdata['type'] = { $nin: type_not.split(',') };
         }
-        const resp = await Setting.find(fdata).populate('parent').lean();
+        const resp = await Setting.find(fdata).populate('parent').sort({ position: 1 }).lean();
         const data = await Promise.all(
             resp.map(async (s) => {
 
@@ -195,6 +215,7 @@ exports.delete_setting = async (req, res) => {
 exports.update_setting = async (req, res) => {
     try {
         const data = { ...req.body };
+
         const title = req.body.title;
         if (req.file) {
             data['file'] = req.file.path
@@ -203,7 +224,7 @@ exports.update_setting = async (req, res) => {
             const url = makeSlug(title);
             data['slug'] = url;
         }
-        const resp = await Setting.findOneAndUpdate({ _id: req.params.id }, { $set: { ...data } }, { new: true });
+        const resp = await Setting.findOneAndUpdate({ _id: req.params.id }, { $set: { ...data } }, { new: true, runValidators: true });
         return res.json({ success: 1, message: "updated successfully", data: resp })
     } catch (err) {
         return res.json({ success: 0, message: err.message })

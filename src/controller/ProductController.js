@@ -1,5 +1,366 @@
+// const Product = require("../models/Product");
+// const Setting = require("../models/Setting");
+
+// const makeSlug = (title) => {
+//     return title
+//         .toLowerCase()
+//         .trim()
+//         .replace(/[^a-z0-9\s-]/g, "")
+//         .replace(/\s+/g, "-")
+//         .replace(/-+/g, "-");
+// };
+
+// // CREATE PRODUCT
+// exports.createProduct = async (req, res) => {
+//     try {
+//         const {
+//             title,
+//             url,
+//             short_description,
+//             description,
+//             category,
+//             subcategory,
+//             seo_title,
+//             seo_description,
+//             colors,
+//             seo_keywords,
+//             sort_order,
+//         } = req.body;
+
+//         const image = req.files?.image?.[0]
+//             ? req.files.image[0].path.replace(/\\/g, "/")
+//             : null;
+
+//         const data_sheet =
+//             req.files?.data_sheet?.map((file) => ({
+//                 file_name: file.originalname,
+//                 file: file.path.replace(/\\/g, "/"),
+//             })) || [];
+
+
+//         const safety_data_sheet =
+//             req.files?.safety_data_sheet?.map((file) => ({
+//                 file_name: file.originalname,
+//                 file: file.path.replace(/\\/g, "/"),
+//             })) || [];
+
+
+//         const product = await Product.create({
+//             title,
+//             slug: makeSlug(title),
+//             colors,
+//             short_description,
+//             description,
+//             category,
+//             subcategory,
+//             image,
+//             data_sheet,
+//             safety_data_sheet,
+//             seo_title,
+//             seo_description,
+//             seo_keywords:
+//                 typeof seo_keywords === "string"
+//                     ? seo_keywords.split(",").map((item) => item.trim())
+//                     : seo_keywords || [],
+//             sort_order,
+//         });
+
+//         return res.status(201).json({
+//             success: 1,
+//             message: "Product created successfully",
+//             data: product,
+//         });
+//     } catch (error) {
+//         console.log(error);
+
+//         return res.status(500).json({
+//             success: 0,
+//             message: error.message,
+//         });
+//     }
+// };
+
+// // UPDATE PRODUCT
+// exports.updateProduct = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+
+//         const product = await Product.findById(id);
+
+//         if (!product) {
+//             return res.status(404).json({
+//                 success: 0,
+//                 message: "Product not found",
+//             });
+//         }
+
+//         const updateData = {
+//             ...req.body,
+//         };
+
+//         if (req.body.title) {
+//             updateData.slug = makeSlug(req.body.title);
+//         }
+
+//         if (req.files?.image?.length) {
+//             updateData.image = req.files.image[0].path.replace(/\\/g, "/");
+//         }
+
+//         if (req.files?.data_sheet?.length) {
+//             updateData.data_sheet = req.files.data_sheet.map((file) => ({
+//                 file_name: file.originalname,
+//                 file: file.path.replace(/\\/g, "/"),
+//             }));
+//         }
+
+//         if (req.files?.safety_data_sheet?.length) {
+//             updateData.safety_data_sheet = req.files.safety_data_sheet.map((file) => ({
+//                 file_name: file.originalname,
+//                 file: file.path.replace(/\\/g, "/"),
+//             }));
+//         }
+
+
+
+//         if (typeof req.body.seo_keywords === "string") {
+//             updateData.seo_keywords = req.body.seo_keywords
+//                 .split(",")
+//                 .map((item) => item.trim());
+//         }
+
+//         const updatedProduct = await Product.findByIdAndUpdate(
+//             id,
+//             updateData,
+//             { new: true }
+//         );
+
+//         return res.json({
+//             success: 1,
+//             message: "Product updated successfully",
+//             data: updatedProduct,
+//         });
+//     } catch (error) {
+//         console.log(error);
+
+//         return res.status(500).json({
+//             success: 0,
+//             message: error.message,
+//         });
+//     }
+// };
+
+// // GET ALL PRODUCTS
+// exports.getProducts = async (req, res) => {
+//     try {
+//         const filter = {};
+
+//         if (req.query.category) {
+//             filter.category = req.query.category;
+//         }
+
+//         if (req.query.subcategory) {
+//             filter.subcategory = req.query.subcategory;
+//         }
+
+//         if (req.query.categorySlug) {
+//             const category = await Setting.findOne({
+//                 slug: makeSlug(req.query.categorySlug),
+//             }).select("_id");
+
+//             if (!category) {
+//                 return res.json({
+//                     success: 1,
+//                     count: 0,
+//                     data: [],
+//                 });
+//             }
+
+//             filter.category = category._id;
+//         }
+
+//         if (req.query.colors) {
+//             const colors = await Setting.findOne({
+//                 title: req.query.colors,
+//             }).select("_id");
+
+//             if (!colors) {
+//                 return res.json({
+//                     success: 1,
+//                     count: 0,
+//                     data: [],
+//                 });
+//             }
+
+//             filter.colors = colors._id;
+//         }
+
+//         if (req.query.subcategorySlug) {
+//             const subCategory = await Setting.findOne({
+//                 slug: makeSlug(req.query.subcategorySlug),
+//             }).select("_id");
+
+//             if (!subCategory) {
+//                 return res.json({
+//                     success: 1,
+//                     count: 0,
+//                     data: [],
+//                 });
+//             }
+
+//             filter.subcategory = subCategory._id;
+//         }
+
+//         if (req.query.slug) {
+//             filter.slug = req.query.slug;
+//         }
+
+//         if (req.query.isActive !== undefined) {
+//             filter.isActive = req.query.isActive;
+//         }
+
+
+//         // Search by title
+//         if (req.query.search) {
+//             filter.title = {
+//                 $regex: req.query.search,
+//                 $options: "i",
+//             };
+//         }
+
+//         const products = await Product.find(filter)
+//             .populate("category", "title slug")
+//             .populate("subcategory", "title slug")
+//             .populate("colors", "title slug")
+//             .sort({ sort_order: 1, createdAt: -1 });
+
+//         return res.json({
+//             success: 1,
+//             count: products.length,
+//             data: products,
+//         });
+//     } catch (error) {
+//         console.log(error);
+
+//         return res.status(500).json({
+//             success: 0,
+//             message: error.message,
+//         });
+//     }
+// };
+
+// // GET SINGLE PRODUCT
+// exports.getProduct = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+
+//         const product = await Product.findById(id)
+//             .populate("category", "title")
+//             .populate("subcategory", "title")
+//             .populate("colors", "title");
+
+
+//         if (!product) {
+//             return res.status(404).json({
+//                 success: 0,
+//                 message: "Product not found",
+//             });
+//         }
+
+//         return res.json({
+//             success: 1,
+//             data: product,
+//         });
+//     } catch (error) {
+//         console.log(error);
+
+//         return res.status(500).json({
+//             success: 0,
+//             message: error.message,
+//         });
+//     }
+// };
+
+// // DELETE PRODUCT
+// exports.deleteProduct = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+
+//         const product = await Product.findByIdAndDelete(id);
+
+//         if (!product) {
+//             return res.status(404).json({
+//                 success: 0,
+//                 message: "Product not found",
+//             });
+//         }
+
+//         return res.json({
+//             success: 1,
+//             message: "Product deleted successfully",
+//         });
+//     } catch (error) {
+//         console.log(error);
+
+//         return res.status(500).json({
+//             success: 0,
+//             message: error.message,
+//         });
+//     }
+// };
+
+
+
+// // GET RELATED PRODUCTS
+// exports.getRelatedProducts = async (req, res) => {
+//     try {
+//         const { category, productId } = req.query;
+
+//         if (!category) {
+//             return res.status(400).json({
+//                 success: 0,
+//                 message: "Category is required",
+//             });
+//         }
+
+//         const filter = {
+//             category,
+//             isActive: true,
+//         };
+
+//         // Exclude current product
+//         if (productId) {
+//             filter._id = { $ne: productId };
+//         }
+
+//         const products = await Product.find(filter)
+//             .populate("category", "title")
+//             .populate("subcategory", "title")
+//             .populate("colors", "title")
+
+//             .sort({ sort_order: 1, createdAt: -1 });
+
+//         return res.json({
+//             success: 1,
+//             count: products.length,
+//             data: products,
+//         });
+//     } catch (error) {
+//         console.log(error);
+
+//         return res.status(500).json({
+//             success: 0,
+//             message: error.message,
+//         });
+//     }
+// };
+
+
+
 const Product = require("../models/Product");
 const Setting = require("../models/Setting");
+const fs = require('fs');
+const fsp = fs.promises;
+const path = require('path');
 
 const makeSlug = (title) => {
     return title
@@ -27,9 +388,13 @@ exports.createProduct = async (req, res) => {
             sort_order,
         } = req.body;
 
-        const image = req.files?.image?.[0]
-            ? req.files.image[0].path.replace(/\\/g, "/")
-            : null;
+        // multiple images -> array of { path, filename, file_type }
+        const uploadedImages = req.files?.images || [];
+        const images = uploadedImages.map((f) => ({
+            path: f.path.replace(/\\/g, "/"),
+            filename: f.originalname,
+            file_type: f.mimetype,
+        }));
 
         const data_sheet =
             req.files?.data_sheet?.map((file) => ({
@@ -37,13 +402,11 @@ exports.createProduct = async (req, res) => {
                 file: file.path.replace(/\\/g, "/"),
             })) || [];
 
-
         const safety_data_sheet =
             req.files?.safety_data_sheet?.map((file) => ({
                 file_name: file.originalname,
                 file: file.path.replace(/\\/g, "/"),
             })) || [];
-
 
         const product = await Product.create({
             title,
@@ -53,7 +416,7 @@ exports.createProduct = async (req, res) => {
             description,
             category,
             subcategory,
-            image,
+            images,
             data_sheet,
             safety_data_sheet,
             seo_title,
@@ -102,8 +465,20 @@ exports.updateProduct = async (req, res) => {
             updateData.slug = makeSlug(req.body.title);
         }
 
-        if (req.files?.image?.length) {
-            updateData.image = req.files.image[0].path.replace(/\\/g, "/");
+        const uploadedImages = req.files?.images || [];
+        if (uploadedImages.length) {
+            const newImages = uploadedImages.map((f) => ({
+                path: f.path.replace(/\\/g, "/"),
+                filename: f.originalname,
+                file_type: f.mimetype,
+            }));
+
+            // append new images to existing product.images array
+            product.images = Array.isArray(product.images)
+                ? product.images.concat(newImages)
+                : newImages;
+
+            await product.save();
         }
 
         if (req.files?.data_sheet?.length) {
@@ -120,19 +495,26 @@ exports.updateProduct = async (req, res) => {
             }));
         }
 
-
-
         if (typeof req.body.seo_keywords === "string") {
             updateData.seo_keywords = req.body.seo_keywords
                 .split(",")
                 .map((item) => item.trim());
         }
 
-        const updatedProduct = await Product.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true }
-        );
+        // images already handled separately above via .save(), don't let it get overwritten
+        delete updateData.images;
+
+        let updatedProduct;
+        if (uploadedImages.length) {
+            Object.assign(product, updateData);
+            updatedProduct = await product.save();
+        } else {
+            updatedProduct = await Product.findByIdAndUpdate(
+                id,
+                updateData,
+                { new: true }
+            );
+        }
 
         return res.json({
             success: 1,
@@ -218,8 +600,6 @@ exports.getProducts = async (req, res) => {
             filter.isActive = req.query.isActive;
         }
 
-
-        // Search by title
         if (req.query.search) {
             filter.title = {
                 $regex: req.query.search,
@@ -257,7 +637,6 @@ exports.getProduct = async (req, res) => {
             .populate("category", "title")
             .populate("subcategory", "title")
             .populate("colors", "title");
-
 
         if (!product) {
             return res.status(404).json({
@@ -308,7 +687,40 @@ exports.deleteProduct = async (req, res) => {
     }
 };
 
+// DELETE single image from product.images by image _id and remove file from disk
+exports.deleteProductImage = async (req, res) => {
+    try {
+        const { id, imageId } = req.params;
 
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).json({ success: 0, message: 'Product not found' });
+        }
+
+        const imgSub = product.images.id(imageId);
+        if (!imgSub) {
+            return res.status(404).json({ success: 0, message: 'Image not found on this product' });
+        }
+
+        const filePath = imgSub.path;
+
+        // remove subdocument (Mongoose 7+: subdoc.remove() no longer exists, use .pull)
+        product.images.pull(imageId);
+
+        await product.save();
+
+        // attempt to delete file from disk (ignore errors)
+        try {
+            const abs = path.resolve(filePath);
+            await fsp.unlink(abs).catch(() => { });
+        } catch (_) { }
+
+        return res.json({ success: 1, message: 'Image removed', data: product });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: 0, message: error.message });
+    }
+};
 
 // GET RELATED PRODUCTS
 exports.getRelatedProducts = async (req, res) => {
@@ -327,7 +739,6 @@ exports.getRelatedProducts = async (req, res) => {
             isActive: true,
         };
 
-        // Exclude current product
         if (productId) {
             filter._id = { $ne: productId };
         }
@@ -336,7 +747,6 @@ exports.getRelatedProducts = async (req, res) => {
             .populate("category", "title")
             .populate("subcategory", "title")
             .populate("colors", "title")
-
             .sort({ sort_order: 1, createdAt: -1 });
 
         return res.json({

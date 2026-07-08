@@ -43,6 +43,14 @@ const mediaSchema = new Schema(
             default: null,
         },
 
+        images: [
+            {
+                path: { type: String },
+                filename: { type: String },
+                file_type: { type: String },
+            },
+        ],
+
 
 
 

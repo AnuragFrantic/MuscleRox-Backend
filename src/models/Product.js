@@ -59,10 +59,13 @@ const productSchema = new Schema(
             required: true,
         },
 
-        image: {
-            type: String,
-            default: null,
-        },
+        images: [
+            {
+                path: { type: String },
+                filename: { type: String },
+                file_type: { type: String },
+            },
+        ],
 
 
 

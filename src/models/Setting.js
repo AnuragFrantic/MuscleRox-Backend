@@ -7,11 +7,17 @@ const schema = new Schema({
         ref: "Setting",
         default: null
     },
+    position: {
+        type: Number,
+    },
     slug: {
         type: String
     },
     title: {
         type: String
+    },
+    sub_title: {
+        type: String,
     },
     type: {
         type: String

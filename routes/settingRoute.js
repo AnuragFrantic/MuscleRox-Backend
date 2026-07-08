@@ -8,7 +8,9 @@ const router = Router();
 router.get('/', GuestAuth(), get_setting);
 router.put('/', Auth('Admin'), Store('any').fields([
     { name: 'logo', maxCount: 1 },
-    { name: 'favicon', maxCount: 1 }
+    { name: 'favicon', maxCount: 1 },
+    { name: 'footer_logo', maxCount: 1 },
+    { name: 'footer_under_logo', maxCount: 1 },
 ]), create_or_update_settings);
 router.get('/menu', menubar_web);
 router.post('/', Auth('Admin'), Store('any').single('file'), create_setting);
