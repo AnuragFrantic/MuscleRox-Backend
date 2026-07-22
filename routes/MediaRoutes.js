@@ -12,7 +12,7 @@ const router = Router();
 router.post(
     "/",
     Store("any").fields([
-        { name: "images", maxCount: 10 },
+        { name: "images", maxCount: 20 },
     ]),
     createMedia
 );
@@ -20,7 +20,7 @@ router.post(
 router.put(
     "/:id",
     Store("any").fields([
-        { name: "images", maxCount: 10 },
+        { name: "images", maxCount: 20 },
     ]),
     updateMedia
 );
