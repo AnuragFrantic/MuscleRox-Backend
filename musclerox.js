@@ -62,6 +62,8 @@ const MediaRoute = require('./routes/MediaRoutes');
 const FaqRoute = require('./routes/FaqRoutes');
 const TeamRoute = require('./routes/TeamRoutes');
 const AboutRoute = require('./routes/AboutRoutes');
+const DistributorPartnerRoute = require('./routes/DistributorPartnerRoutes');
+
 
 
 
@@ -94,6 +96,8 @@ app.use('/api/v1/media', MediaRoute);
 app.use('/api/v1/faq', FaqRoute);
 app.use('/api/v1/team', TeamRoute);
 app.use('/api/v1/about', AboutRoute);
+app.use('/api/v1/distribution-partner', DistributorPartnerRoute);
+
 
 
 
