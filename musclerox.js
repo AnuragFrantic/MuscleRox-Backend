@@ -3,9 +3,24 @@ const { server, app } = require('./app');
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
-const mongourl = "mongodb+srv://anurag_db_user:2klG8lk6fwy2jgEP@musclerox.rybw9ae.mongodb.net/?appName=musclerox";
 
-mongoose.connect(mongourl);
+// const mongourl = "mongodb+srv://anurag_db_user:2klG8lk6fwy2jgEP@musclerox.rybw9ae.mongodb.net/?appName=musclerox"
+const mongourl =
+    "mongodb+srv://anurag_db_user:hsGnkfrPlSPYaZvL@musclerox.rybw9ae.mongodb.net/musclerox?retryWrites=true&w=majority&appName=musclerox";
+
+// hsGnkfrPlSPYaZvL
+
+
+async function connectDB() {
+    try {
+        await mongoose.connect(mongourl);
+        console.log("✅ MongoDB Connected");
+    } catch (err) {
+        console.error("❌ MongoDB Error:", err);
+    }
+}
+
+connectDB();
 const database = mongoose.connection;
 database.on('connected', () => {
     console.log('Database connected');
