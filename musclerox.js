@@ -13,8 +13,8 @@ const mongourl = "mongodb+srv://anurag_db_user:hsGnkfrPlSPYaZvL@musclerox.rybw9a
 // hsGnkfrPlSPYaZvL
 
 
-const dns = require('dns');
-dns.setServers(['10.5.50.1']);
+// const dns = require('dns');
+// dns.setServers(['10.5.50.1']);
 
 
 async function connectDB() {
