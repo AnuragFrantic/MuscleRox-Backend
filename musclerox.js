@@ -4,11 +4,17 @@ const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
 
-// const mongourl = "mongodb+srv://anurag_db_user:2klG8lk6fwy2jgEP@musclerox.rybw9ae.mongodb.net/?appName=musclerox"
-const mongourl =
-    "mongodb+srv://anurag_db_user:hsGnkfrPlSPYaZvL@musclerox.rybw9ae.mongodb.net/musclerox?retryWrites=true&w=majority&appName=musclerox";
+
+
+const mongourl = "mongodb+srv://anurag_db_user:hsGnkfrPlSPYaZvL@musclerox.rybw9ae.mongodb.net/?appName=musclerox"
+// const mongourl =
+//     "mongodb+srv://anurag_db_user:hsGnkfrPlSPYaZvL@musclerox.rybw9ae.mongodb.net/musclerox?retryWrites=true&w=majority&appName=musclerox";
 
 // hsGnkfrPlSPYaZvL
+
+
+const dns = require('dns');
+dns.setServers(['10.5.50.1']);
 
 
 async function connectDB() {
