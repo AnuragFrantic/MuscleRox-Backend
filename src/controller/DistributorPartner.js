@@ -1,4 +1,4 @@
-const DistributionPartner = require("./DistributionPartner.model");
+const DistributionPartner = require("./DistributionPartner");
 
 // POST /api/distribution-partner
 exports.createDistributionPartner = async (req, res) => {
