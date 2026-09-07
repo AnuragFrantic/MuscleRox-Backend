@@ -194,11 +194,10 @@ function slugify(text) {
         .replace(/(^-|-$)+/g, "");
 }
 
-JobSchema.pre("save", function (next) {
+JobSchema.pre("save", function () {
     if (this.isModified("title") || !this.slug) {
-        this.slug = `${slugify(this.title)}}`;
+        this.slug = slugify(this.title);
     }
-    next();
 });
 
 // virtual: turns createdAt into "Posted 5 days ago" without storing it
