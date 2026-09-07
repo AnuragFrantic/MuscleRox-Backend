@@ -68,7 +68,17 @@ const MediaRoute = require('./routes/MediaRoutes');
 const FaqRoute = require('./routes/FaqRoutes');
 const TeamRoute = require('./routes/TeamRoutes');
 const AboutRoute = require('./routes/AboutRoutes');
-const DistributorPartnerRoute = require('./routes/DistributorPartnerRoutes');
+
+
+const JobRoutes = require('./routes/JobRoutes');
+const PartnerWithUs = require('./routes/PartnerWithUs');
+const ProductPortfolio = require('./routes/ProductPortfolio');
+const GradeRoute = require('./routes/GradeRoutes');
+const ApplicationRoutes = require('./routes/Application.routes');
+
+
+
+
 
 
 
@@ -88,6 +98,7 @@ app.use('/api/v1/product', productRoute);
 
 
 
+
 app.use('/api/v1/blog', blogroutes);
 app.use('/api/v1/testimonial', testimonialRoute);
 
@@ -102,7 +113,14 @@ app.use('/api/v1/media', MediaRoute);
 app.use('/api/v1/faq', FaqRoute);
 app.use('/api/v1/team', TeamRoute);
 app.use('/api/v1/about', AboutRoute);
-app.use('/api/v1/distribution-partner', DistributorPartnerRoute);
+app.use('/api/v1/partner_with_us', PartnerWithUs);
+app.use('/api/v1/product-portfolio', ProductPortfolio);
+app.use('/api/v1/grade', GradeRoute);
+app.use("/api/v1/application", ApplicationRoutes);
+
+
+app.use('/api/v1/job', JobRoutes);
+
 
 
 
@@ -118,3 +136,8 @@ app.use('/api/v1/distribution-partner', DistributorPartnerRoute);
 server.listen(port, () => {
     console.log(`MuscleRox api started at https://localhost:${port}`);
 });
+
+
+// https://www.fluorescentcolor.com/
+
+// https://www.fluorescentcolor.com/aerosol-paint

@@ -1,366 +1,11 @@
-// const Product = require("../models/Product");
-// const Setting = require("../models/Setting");
 
-// const makeSlug = (title) => {
-//     return title
-//         .toLowerCase()
-//         .trim()
-//         .replace(/[^a-z0-9\s-]/g, "")
-//         .replace(/\s+/g, "-")
-//         .replace(/-+/g, "-");
-// };
-
-// // CREATE PRODUCT
-// exports.createProduct = async (req, res) => {
-//     try {
-//         const {
-//             title,
-//             url,
-//             short_description,
-//             description,
-//             category,
-//             subcategory,
-//             seo_title,
-//             seo_description,
-//             colors,
-//             seo_keywords,
-//             sort_order,
-//         } = req.body;
-
-//         const image = req.files?.image?.[0]
-//             ? req.files.image[0].path.replace(/\\/g, "/")
-//             : null;
-
-//         const data_sheet =
-//             req.files?.data_sheet?.map((file) => ({
-//                 file_name: file.originalname,
-//                 file: file.path.replace(/\\/g, "/"),
-//             })) || [];
-
-
-//         const safety_data_sheet =
-//             req.files?.safety_data_sheet?.map((file) => ({
-//                 file_name: file.originalname,
-//                 file: file.path.replace(/\\/g, "/"),
-//             })) || [];
-
-
-//         const product = await Product.create({
-//             title,
-//             slug: makeSlug(title),
-//             colors,
-//             short_description,
-//             description,
-//             category,
-//             subcategory,
-//             image,
-//             data_sheet,
-//             safety_data_sheet,
-//             seo_title,
-//             seo_description,
-//             seo_keywords:
-//                 typeof seo_keywords === "string"
-//                     ? seo_keywords.split(",").map((item) => item.trim())
-//                     : seo_keywords || [],
-//             sort_order,
-//         });
-
-//         return res.status(201).json({
-//             success: 1,
-//             message: "Product created successfully",
-//             data: product,
-//         });
-//     } catch (error) {
-//         console.log(error);
-
-//         return res.status(500).json({
-//             success: 0,
-//             message: error.message,
-//         });
-//     }
-// };
-
-// // UPDATE PRODUCT
-// exports.updateProduct = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-
-//         const product = await Product.findById(id);
-
-//         if (!product) {
-//             return res.status(404).json({
-//                 success: 0,
-//                 message: "Product not found",
-//             });
-//         }
-
-//         const updateData = {
-//             ...req.body,
-//         };
-
-//         if (req.body.title) {
-//             updateData.slug = makeSlug(req.body.title);
-//         }
-
-//         if (req.files?.image?.length) {
-//             updateData.image = req.files.image[0].path.replace(/\\/g, "/");
-//         }
-
-//         if (req.files?.data_sheet?.length) {
-//             updateData.data_sheet = req.files.data_sheet.map((file) => ({
-//                 file_name: file.originalname,
-//                 file: file.path.replace(/\\/g, "/"),
-//             }));
-//         }
-
-//         if (req.files?.safety_data_sheet?.length) {
-//             updateData.safety_data_sheet = req.files.safety_data_sheet.map((file) => ({
-//                 file_name: file.originalname,
-//                 file: file.path.replace(/\\/g, "/"),
-//             }));
-//         }
-
-
-
-//         if (typeof req.body.seo_keywords === "string") {
-//             updateData.seo_keywords = req.body.seo_keywords
-//                 .split(",")
-//                 .map((item) => item.trim());
-//         }
-
-//         const updatedProduct = await Product.findByIdAndUpdate(
-//             id,
-//             updateData,
-//             { new: true }
-//         );
-
-//         return res.json({
-//             success: 1,
-//             message: "Product updated successfully",
-//             data: updatedProduct,
-//         });
-//     } catch (error) {
-//         console.log(error);
-
-//         return res.status(500).json({
-//             success: 0,
-//             message: error.message,
-//         });
-//     }
-// };
-
-// // GET ALL PRODUCTS
-// exports.getProducts = async (req, res) => {
-//     try {
-//         const filter = {};
-
-//         if (req.query.category) {
-//             filter.category = req.query.category;
-//         }
-
-//         if (req.query.subcategory) {
-//             filter.subcategory = req.query.subcategory;
-//         }
-
-//         if (req.query.categorySlug) {
-//             const category = await Setting.findOne({
-//                 slug: makeSlug(req.query.categorySlug),
-//             }).select("_id");
-
-//             if (!category) {
-//                 return res.json({
-//                     success: 1,
-//                     count: 0,
-//                     data: [],
-//                 });
-//             }
-
-//             filter.category = category._id;
-//         }
-
-//         if (req.query.colors) {
-//             const colors = await Setting.findOne({
-//                 title: req.query.colors,
-//             }).select("_id");
-
-//             if (!colors) {
-//                 return res.json({
-//                     success: 1,
-//                     count: 0,
-//                     data: [],
-//                 });
-//             }
-
-//             filter.colors = colors._id;
-//         }
-
-//         if (req.query.subcategorySlug) {
-//             const subCategory = await Setting.findOne({
-//                 slug: makeSlug(req.query.subcategorySlug),
-//             }).select("_id");
-
-//             if (!subCategory) {
-//                 return res.json({
-//                     success: 1,
-//                     count: 0,
-//                     data: [],
-//                 });
-//             }
-
-//             filter.subcategory = subCategory._id;
-//         }
-
-//         if (req.query.slug) {
-//             filter.slug = req.query.slug;
-//         }
-
-//         if (req.query.isActive !== undefined) {
-//             filter.isActive = req.query.isActive;
-//         }
-
-
-//         // Search by title
-//         if (req.query.search) {
-//             filter.title = {
-//                 $regex: req.query.search,
-//                 $options: "i",
-//             };
-//         }
-
-//         const products = await Product.find(filter)
-//             .populate("category", "title slug")
-//             .populate("subcategory", "title slug")
-//             .populate("colors", "title slug")
-//             .sort({ sort_order: 1, createdAt: -1 });
-
-//         return res.json({
-//             success: 1,
-//             count: products.length,
-//             data: products,
-//         });
-//     } catch (error) {
-//         console.log(error);
-
-//         return res.status(500).json({
-//             success: 0,
-//             message: error.message,
-//         });
-//     }
-// };
-
-// // GET SINGLE PRODUCT
-// exports.getProduct = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-
-//         const product = await Product.findById(id)
-//             .populate("category", "title")
-//             .populate("subcategory", "title")
-//             .populate("colors", "title");
-
-
-//         if (!product) {
-//             return res.status(404).json({
-//                 success: 0,
-//                 message: "Product not found",
-//             });
-//         }
-
-//         return res.json({
-//             success: 1,
-//             data: product,
-//         });
-//     } catch (error) {
-//         console.log(error);
-
-//         return res.status(500).json({
-//             success: 0,
-//             message: error.message,
-//         });
-//     }
-// };
-
-// // DELETE PRODUCT
-// exports.deleteProduct = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-
-//         const product = await Product.findByIdAndDelete(id);
-
-//         if (!product) {
-//             return res.status(404).json({
-//                 success: 0,
-//                 message: "Product not found",
-//             });
-//         }
-
-//         return res.json({
-//             success: 1,
-//             message: "Product deleted successfully",
-//         });
-//     } catch (error) {
-//         console.log(error);
-
-//         return res.status(500).json({
-//             success: 0,
-//             message: error.message,
-//         });
-//     }
-// };
-
-
-
-// // GET RELATED PRODUCTS
-// exports.getRelatedProducts = async (req, res) => {
-//     try {
-//         const { category, productId } = req.query;
-
-//         if (!category) {
-//             return res.status(400).json({
-//                 success: 0,
-//                 message: "Category is required",
-//             });
-//         }
-
-//         const filter = {
-//             category,
-//             isActive: true,
-//         };
-
-//         // Exclude current product
-//         if (productId) {
-//             filter._id = { $ne: productId };
-//         }
-
-//         const products = await Product.find(filter)
-//             .populate("category", "title")
-//             .populate("subcategory", "title")
-//             .populate("colors", "title")
-
-//             .sort({ sort_order: 1, createdAt: -1 });
-
-//         return res.json({
-//             success: 1,
-//             count: products.length,
-//             data: products,
-//         });
-//     } catch (error) {
-//         console.log(error);
-
-//         return res.status(500).json({
-//             success: 0,
-//             message: error.message,
-//         });
-//     }
-// };
-
-
-
-const Product = require("../models/Product");
-const Setting = require("../models/Setting");
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
+const Product = require('../models/Product');
+const ApplicationModel = require('../models/Application.model');
+const Setting = require('../models/Setting');
+const mongoose = require("mongoose");
 
 const makeSlug = (title) => {
     return title
@@ -376,21 +21,23 @@ exports.createProduct = async (req, res) => {
     try {
         const {
             title,
-            url,
             short_description,
             description,
-            category,
-            subcategory,
+            colors,              // Setting ref, single ObjectId (required in schema)
+            recomended_products, // Product ref, array of ObjectIds (optional)
+            application_id,      // Application ref, single ObjectId (required in schema)
+            aboutuscontent,
+            key_benefit,
             seo_title,
             seo_description,
-            colors,
             seo_keywords,
             sort_order,
         } = req.body;
 
-        // multiple images -> array of { path, filename, file_type }
-        const uploadedImages = req.files?.images || [];
-        const images = uploadedImages.map((f) => ({
+        // multiple gallery images -> array of { path, filename, file_type }
+        const uploadedImages = req.files?.color_range || [];
+
+        const color_range = uploadedImages.map((f) => ({
             path: f.path.replace(/\\/g, "/"),
             filename: f.originalname,
             file_type: f.mimetype,
@@ -408,22 +55,37 @@ exports.createProduct = async (req, res) => {
                 file: file.path.replace(/\\/g, "/"),
             })) || [];
 
+        // schema's "image" is a single main image, separate from the color_range gallery
+        const image = req.files?.image?.[0]
+            ? req.files.image[0].path.replace(/\\/g, "/")
+            : undefined;
+
+        // recomended_products can arrive as a real array (JSON body) or a
+        // comma-separated string (multipart form field) — normalize both
+        const normalizedRecommended =
+            typeof recomended_products === "string"
+                ? recomended_products.split(",").map((item) => item.trim()).filter(Boolean)
+                : recomended_products || [];
+
         const product = await Product.create({
             title,
             slug: makeSlug(title),
-            colors,
             short_description,
             description,
-            category,
-            subcategory,
-            images,
+            colors,
+            recomended_products: normalizedRecommended,
+            application_id,
+            image,
+            aboutuscontent,
+            key_benefit,
+            color_range,
             data_sheet,
             safety_data_sheet,
             seo_title,
             seo_description,
             seo_keywords:
                 typeof seo_keywords === "string"
-                    ? seo_keywords.split(",").map((item) => item.trim())
+                    ? seo_keywords.split(",").map((item) => item.trim()).filter(Boolean)
                     : seo_keywords || [],
             sort_order,
         });
@@ -465,7 +127,23 @@ exports.updateProduct = async (req, res) => {
             updateData.slug = makeSlug(req.body.title);
         }
 
-        const uploadedImages = req.files?.images || [];
+        if (typeof req.body.seo_keywords === "string") {
+            updateData.seo_keywords = req.body.seo_keywords
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+
+        if (typeof req.body.recomended_products === "string") {
+            updateData.recomended_products = req.body.recomended_products
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+
+        // color_range (gallery) gets appended, not replaced — schema field is
+        // "color_range", not "images" (that field doesn't exist on this model)
+        const uploadedImages = req.files?.color_range || [];
         if (uploadedImages.length) {
             const newImages = uploadedImages.map((f) => ({
                 path: f.path.replace(/\\/g, "/"),
@@ -473,12 +151,16 @@ exports.updateProduct = async (req, res) => {
                 file_type: f.mimetype,
             }));
 
-            // append new images to existing product.images array
-            product.images = Array.isArray(product.images)
-                ? product.images.concat(newImages)
+            product.color_range = Array.isArray(product.color_range)
+                ? product.color_range.concat(newImages)
                 : newImages;
 
             await product.save();
+        }
+
+        // "image" is the single main image — replaced, not appended
+        if (req.files?.image?.[0]) {
+            updateData.image = req.files.image[0].path.replace(/\\/g, "/");
         }
 
         if (req.files?.data_sheet?.length) {
@@ -495,14 +177,9 @@ exports.updateProduct = async (req, res) => {
             }));
         }
 
-        if (typeof req.body.seo_keywords === "string") {
-            updateData.seo_keywords = req.body.seo_keywords
-                .split(",")
-                .map((item) => item.trim());
-        }
-
-        // images already handled separately above via .save(), don't let it get overwritten
-        delete updateData.images;
+        // color_range is already handled and saved above — don't let a stale
+        // value from req.body overwrite it in the branches below
+        delete updateData.color_range;
 
         let updatedProduct;
         if (uploadedImages.length) {
@@ -535,21 +212,40 @@ exports.updateProduct = async (req, res) => {
 exports.getProducts = async (req, res) => {
     try {
         const filter = {};
+        const mongoose = require("mongoose"); // if not already imported at top
 
-        if (req.query.category) {
-            filter.category = req.query.category;
+        // schema has no category/subcategory fields — products link to a
+        // single application via application_id instead
+        if (req.query.application_id) {
+            const value = req.query.application_id;
+
+            if (mongoose.Types.ObjectId.isValid(value)) {
+                // looks like a real ObjectId — use it directly
+                filter.application_id = value;
+            } else {
+                // treat it as a slug, e.g. ?application_id=water-based
+                const application = await ApplicationModel.findOne({
+                    slug: makeSlug(value),
+                }).select("_id");
+
+                if (!application) {
+                    return res.json({
+                        success: 1,
+                        count: 0,
+                        data: [],
+                    });
+                }
+
+                filter.application_id = application._id;
+            }
         }
 
-        if (req.query.subcategory) {
-            filter.subcategory = req.query.subcategory;
-        }
-
-        if (req.query.categorySlug) {
-            const category = await Setting.findOne({
-                slug: makeSlug(req.query.categorySlug),
+        if (req.query.applicationSlug) {
+            const application = await ApplicationModel.findOne({
+                slug: makeSlug(req.query.applicationSlug),
             }).select("_id");
 
-            if (!category) {
+            if (!application) {
                 return res.json({
                     success: 1,
                     count: 0,
@@ -557,15 +253,15 @@ exports.getProducts = async (req, res) => {
                 });
             }
 
-            filter.category = category._id;
+            filter.application_id = application._id;
         }
 
         if (req.query.colors) {
-            const colors = await Setting.findOne({
+            const colorSetting = await Setting.findOne({
                 title: req.query.colors,
             }).select("_id");
 
-            if (!colors) {
+            if (!colorSetting) {
                 return res.json({
                     success: 1,
                     count: 0,
@@ -573,23 +269,7 @@ exports.getProducts = async (req, res) => {
                 });
             }
 
-            filter.colors = colors._id;
-        }
-
-        if (req.query.subcategorySlug) {
-            const subCategory = await Setting.findOne({
-                slug: makeSlug(req.query.subcategorySlug),
-            }).select("_id");
-
-            if (!subCategory) {
-                return res.json({
-                    success: 1,
-                    count: 0,
-                    data: [],
-                });
-            }
-
-            filter.subcategory = subCategory._id;
+            filter.colors = colorSetting._id;
         }
 
         if (req.query.slug) {
@@ -608,9 +288,9 @@ exports.getProducts = async (req, res) => {
         }
 
         const products = await Product.find(filter)
-            .populate("category", "title slug")
-            .populate("subcategory", "title slug")
             .populate("colors", "title slug")
+            .populate("application_id", "title slug")
+            .populate("recomended_products", "title slug image")
             .sort({ sort_order: 1, createdAt: -1 });
 
         return res.json({
@@ -627,16 +307,45 @@ exports.getProducts = async (req, res) => {
         });
     }
 };
-
 // GET SINGLE PRODUCT
+
+
+
+
+
 exports.getProduct = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const product = await Product.findById(id)
-            .populate("category", "title")
-            .populate("subcategory", "title")
-            .populate("colors", "title");
+        let filter;
+
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            filter = {
+                $or: [
+                    { _id: id },
+                    { slug: id },
+                ],
+            };
+        } else {
+            filter = {
+                slug: id,
+            };
+        }
+
+        const product = await Product.findOne(filter)
+            .populate("colors", "title slug")
+            .populate({
+                path: "application_id",
+                select: "title slug parent_id",
+                populate: {
+                    path: "parent_id",
+                    select: "title slug",
+                },
+            })
+            .populate(
+                "recomended_products",
+                "title slug image"
+            );
 
         if (!product) {
             return res.status(404).json({
@@ -649,6 +358,7 @@ exports.getProduct = async (req, res) => {
             success: 1,
             data: product,
         });
+
     } catch (error) {
         console.log(error);
 
@@ -658,6 +368,14 @@ exports.getProduct = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+
+
+
 
 // DELETE PRODUCT
 exports.deleteProduct = async (req, res) => {
@@ -687,7 +405,7 @@ exports.deleteProduct = async (req, res) => {
     }
 };
 
-// DELETE single image from product.images by image _id and remove file from disk
+// DELETE single gallery image from product.color_range by subdoc _id and remove file from disk
 exports.deleteProductImage = async (req, res) => {
     try {
         const { id, imageId } = req.params;
@@ -697,15 +415,16 @@ exports.deleteProductImage = async (req, res) => {
             return res.status(404).json({ success: 0, message: 'Product not found' });
         }
 
-        const imgSub = product.images.id(imageId);
+        // schema field is "color_range", not "images" — that field doesn't
+        // exist on this model, so the old code would throw here
+        const imgSub = product.color_range.id(imageId);
         if (!imgSub) {
             return res.status(404).json({ success: 0, message: 'Image not found on this product' });
         }
 
         const filePath = imgSub.path;
 
-        // remove subdocument (Mongoose 7+: subdoc.remove() no longer exists, use .pull)
-        product.images.pull(imageId);
+        product.color_range.pull(imageId);
 
         await product.save();
 
@@ -725,17 +444,17 @@ exports.deleteProductImage = async (req, res) => {
 // GET RELATED PRODUCTS
 exports.getRelatedProducts = async (req, res) => {
     try {
-        const { category, productId } = req.query;
+        const { application_id, productId } = req.query;
 
-        if (!category) {
+        if (!application_id) {
             return res.status(400).json({
                 success: 0,
-                message: "Category is required",
+                message: "application_id is required",
             });
         }
 
         const filter = {
-            category,
+            application_id,
             isActive: true,
         };
 
@@ -744,9 +463,8 @@ exports.getRelatedProducts = async (req, res) => {
         }
 
         const products = await Product.find(filter)
-            .populate("category", "title")
-            .populate("subcategory", "title")
             .populate("colors", "title")
+            .populate("application_id", "title")
             .sort({ sort_order: 1, createdAt: -1 });
 
         return res.json({
@@ -763,3 +481,32 @@ exports.getRelatedProducts = async (req, res) => {
         });
     }
 };
+
+/*
+ * NOTE: `colors` and `application_id` are still `required: true` single
+ * ObjectIds on the schema — product creation will fail with a Mongoose
+ * validation error if the admin form doesn't send both. Worth confirming
+ * that's actually intended before shipping the create form.
+ */
+
+
+
+// const deleteProduct = async (req, res) => {
+//     try {
+//         const result = await Product.deleteMany({});
+
+//         return res.json({
+//             success: 1,
+//             message: "Categories and sub-categories deleted successfully",
+//             deletedCount: result.deletedCount
+//         });
+
+//     } catch (err) {
+//         return res.status(500).json({
+//             success: 0,
+//             message: err.message
+//         });
+//     }
+// };
+
+// deleteProduct()

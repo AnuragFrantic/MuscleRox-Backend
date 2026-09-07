@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const contactSchema = new Schema(
+const PartnerWithUs = new Schema(
     {
         name: {
             type: String,
@@ -13,23 +13,29 @@ const contactSchema = new Schema(
             type: String,
             default: "",
         },
-        application: {
+
+        company_website: {
             type: String,
             default: "",
         },
-        quantity: {
+
+        country: {
+            type: String,
+            default: "",
+        },
+
+        city: {
             type: String,
             default: "",
         },
 
 
-        position: {
-            type: String
-        },
 
-        file: {
-            type: String
-        },
+
+
+
+
+
 
         phone: {
             type: String,
@@ -38,9 +44,7 @@ const contactSchema = new Schema(
         current_location: {
             type: String,
         },
-        experience: {
-            type: String
-        },
+
 
         category: {
             type: Schema.Types.ObjectId,
@@ -53,21 +57,9 @@ const contactSchema = new Schema(
             required: false,
         },
 
-        product: {
-            type: Schema.Types.ObjectId,
-            ref: "Product",
-            required: false,
-        },
-        job: {
-            type: Schema.Types.ObjectId,
-            ref: "Job",
-            required: false,
-        },
 
-        type: {
-            type: String,
-            default: "",
-        },
+
+
 
         email: {
             type: String,
@@ -86,4 +78,4 @@ const contactSchema = new Schema(
     }
 );
 
-module.exports = mongoose.model("Contact", contactSchema);
+module.exports = mongoose.model("PartnerWithUs", PartnerWithUs);

@@ -336,3 +336,27 @@ exports.menubar_web = async (req, res) => {
 // };
 
 // update_all_setting_slugs();
+
+
+
+// const delete_categories_and_subcategories = async (req, res) => {
+//     try {
+//         const result = await Setting.deleteMany({
+//             type: { $in: ["category", "sub-category"] }
+//         });
+
+//         return res.json({
+//             success: 1,
+//             message: "Categories and sub-categories deleted successfully",
+//             deletedCount: result.deletedCount
+//         });
+
+//     } catch (err) {
+//         return res.status(500).json({
+//             success: 0,
+//             message: err.message
+//         });
+//     }
+// };
+
+// delete_categories_and_subcategories()

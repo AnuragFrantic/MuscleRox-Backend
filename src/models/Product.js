@@ -42,31 +42,46 @@ const productSchema = new Schema(
             default: "",
         },
 
-        category: {
-            type: Schema.Types.ObjectId,
-            ref: "Setting",
-            required: true,
-        },
+
         colors: {
             type: Schema.Types.ObjectId,
             ref: "Setting",
             required: true,
         },
 
-        subcategory: {
+        // was a single required ObjectId — changed to an optional array so a
+        // product can recommend zero, one, or several other products, and the
+        // very first product created isn't forced to reference one that
+        // doesn't exist yet.
+        recomended_products: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Product",
+            },
+        ],
+
+        application_id: {
             type: Schema.Types.ObjectId,
-            ref: "Setting",
+            ref: "Application",
             required: true,
         },
 
-        images: [
+        color_range: [
             {
                 path: { type: String },
                 filename: { type: String },
                 file_type: { type: String },
             },
         ],
-
+        image: {
+            type: String
+        },
+        aboutuscontent: {
+            type: String,
+        },
+        key_benefit: {
+            type: String,
+        },
 
 
         data_sheet: [fileSchema],

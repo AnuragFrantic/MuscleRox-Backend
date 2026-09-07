@@ -1,30 +1,22 @@
-const Contact = require("../models/Contact");
 
-// CREATE CONTACT
-exports.createContact = async (req, res) => {
+const Contact = require("../models/PartnerWithUs");
+
+// CREATE PARTNER
+exports.createPartner = async (req, res) => {
     try {
         const {
             name,
             company_name,
-            application,
-            quantity,
-            position,
+            company_website,
+            country,
+            city,
             phone,
             current_location,
-            experience,
             category,
             subcategory,
-            product,
-            job,
-            type,
             email,
             message,
         } = req.body;
-
-        // Handle uploaded file
-        const file = req.files?.file?.[0]
-            ? req.files.file[0].path.replace(/\\/g, "/")
-            : null;
 
         // Required fields
         if (!name || !email) {
@@ -37,29 +29,24 @@ exports.createContact = async (req, res) => {
         const contact = await Contact.create({
             name,
             company_name,
-            application,
-            quantity,
-            position,
+            company_website,
+            country,
+            city,
             phone,
             current_location,
-            experience,
             category,
             subcategory,
-            product,
-            job,
-            type,
             email,
             message,
-            file,
         });
 
         return res.status(201).json({
             success: 1,
-            message: "Contact created successfully",
+            message: "Partner created successfully",
             data: contact,
         });
     } catch (error) {
-        console.log("Create Contact Error:", error);
+        console.log("Create Partner Error:", error);
 
         return res.status(500).json({
             success: 0,
@@ -68,12 +55,11 @@ exports.createContact = async (req, res) => {
     }
 };
 
-// GET ALL CONTACTS
+
+// GET ALL PARTNERS
 exports.getContacts = async (req, res) => {
     try {
         const contacts = await Contact.find()
-            .populate("product", "title")
-            .populate("job")
             .populate("category")
             .populate("subcategory")
             .sort({ createdAt: -1 });
@@ -84,7 +70,7 @@ exports.getContacts = async (req, res) => {
             data: contacts,
         });
     } catch (error) {
-        console.log("Get Contacts Error:", error);
+        console.log("Get Partners Error:", error);
 
         return res.status(500).json({
             success: 0,
@@ -93,21 +79,20 @@ exports.getContacts = async (req, res) => {
     }
 };
 
-// GET SINGLE CONTACT
+
+// GET SINGLE PARTNER
 exports.getContactById = async (req, res) => {
     try {
         const { id } = req.params;
 
         const contact = await Contact.findById(id)
-            .populate("product", "title")
-            .populate("job")
             .populate("category")
             .populate("subcategory");
 
         if (!contact) {
             return res.status(404).json({
                 success: 0,
-                message: "Contact not found",
+                message: "Partner not found",
             });
         }
 
@@ -116,7 +101,7 @@ exports.getContactById = async (req, res) => {
             data: contact,
         });
     } catch (error) {
-        console.log("Get Contact By ID Error:", error);
+        console.log("Get Partner By ID Error:", error);
 
         return res.status(500).json({
             success: 0,
@@ -125,7 +110,8 @@ exports.getContactById = async (req, res) => {
     }
 };
 
-// UPDATE CONTACT
+
+// UPDATE PARTNER
 exports.updateContact = async (req, res) => {
     try {
         const { id } = req.params;
@@ -133,51 +119,39 @@ exports.updateContact = async (req, res) => {
         const {
             name,
             company_name,
-            application,
-            quantity,
-            position,
+            company_website,
+            country,
+            city,
             phone,
             current_location,
-            experience,
             category,
             subcategory,
-            product,
-            job,
-            type,
             email,
             message,
         } = req.body;
 
-        // Find existing contact
+        // Find existing partner
         const contact = await Contact.findById(id);
 
         if (!contact) {
             return res.status(404).json({
                 success: 0,
-                message: "Contact not found",
+                message: "Partner not found",
             });
-        }
-
-        // Handle new uploaded file
-        if (req.files?.file?.[0]) {
-            contact.file = req.files.file[0].path.replace(/\\/g, "/");
         }
 
         // Update fields
         contact.name = name ?? contact.name;
         contact.company_name = company_name ?? contact.company_name;
-        contact.application = application ?? contact.application;
-        contact.quantity = quantity ?? contact.quantity;
-        contact.position = position ?? contact.position;
+        contact.company_website =
+            company_website ?? contact.company_website;
+        contact.country = country ?? contact.country;
+        contact.city = city ?? contact.city;
         contact.phone = phone ?? contact.phone;
         contact.current_location =
             current_location ?? contact.current_location;
-        contact.experience = experience ?? contact.experience;
         contact.category = category ?? contact.category;
         contact.subcategory = subcategory ?? contact.subcategory;
-        contact.product = product ?? contact.product;
-        contact.job = job ?? contact.job;
-        contact.type = type ?? contact.type;
         contact.email = email ?? contact.email;
         contact.message = message ?? contact.message;
 
@@ -185,11 +159,11 @@ exports.updateContact = async (req, res) => {
 
         return res.status(200).json({
             success: 1,
-            message: "Contact updated successfully",
+            message: "Partner updated successfully",
             data: contact,
         });
     } catch (error) {
-        console.log("Update Contact Error:", error);
+        console.log("Update Partner Error:", error);
 
         return res.status(500).json({
             success: 0,
@@ -198,7 +172,8 @@ exports.updateContact = async (req, res) => {
     }
 };
 
-// DELETE CONTACT
+
+// DELETE PARTNER
 exports.deleteContact = async (req, res) => {
     try {
         const { id } = req.params;
@@ -208,16 +183,16 @@ exports.deleteContact = async (req, res) => {
         if (!contact) {
             return res.status(404).json({
                 success: 0,
-                message: "Contact not found",
+                message: "Partner not found",
             });
         }
 
         return res.status(200).json({
             success: 1,
-            message: "Contact deleted successfully",
+            message: "Partner deleted successfully",
         });
     } catch (error) {
-        console.log("Delete Contact Error:", error);
+        console.log("Delete Partner Error:", error);
 
         return res.status(500).json({
             success: 0,
