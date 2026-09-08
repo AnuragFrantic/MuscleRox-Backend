@@ -24,7 +24,7 @@ exports.createProduct = async (req, res) => {
             short_description,
             description,
             colors,              // Setting ref, single ObjectId (required in schema)
-            recomended_products, // Product ref, array of ObjectIds (optional)
+            grade, // Product ref, array of ObjectIds (optional)
             application_id,      // Application ref, single ObjectId (required in schema)
             aboutuscontent,
             key_benefit,
@@ -60,12 +60,12 @@ exports.createProduct = async (req, res) => {
             ? req.files.image[0].path.replace(/\\/g, "/")
             : undefined;
 
-        // recomended_products can arrive as a real array (JSON body) or a
+        // grade can arrive as a real array (JSON body) or a
         // comma-separated string (multipart form field) — normalize both
         const normalizedRecommended =
-            typeof recomended_products === "string"
-                ? recomended_products.split(",").map((item) => item.trim()).filter(Boolean)
-                : recomended_products || [];
+            typeof grade === "string"
+                ? grade.split(",").map((item) => item.trim()).filter(Boolean)
+                : grade || [];
 
         const product = await Product.create({
             title,
@@ -73,7 +73,7 @@ exports.createProduct = async (req, res) => {
             short_description,
             description,
             colors,
-            recomended_products: normalizedRecommended,
+            grade: normalizedRecommended,
             application_id,
             image,
             aboutuscontent,
@@ -134,8 +134,8 @@ exports.updateProduct = async (req, res) => {
                 .filter(Boolean);
         }
 
-        if (typeof req.body.recomended_products === "string") {
-            updateData.recomended_products = req.body.recomended_products
+        if (typeof req.body.grade === "string") {
+            updateData.grade = req.body.grade
                 .split(",")
                 .map((item) => item.trim())
                 .filter(Boolean);
@@ -290,7 +290,7 @@ exports.getProducts = async (req, res) => {
         const products = await Product.find(filter)
             .populate("colors", "title slug")
             .populate("application_id", "title slug")
-            .populate("recomended_products", "title slug image")
+            .populate("grade", "title slug image")
             .sort({ sort_order: 1, createdAt: -1 });
 
         return res.json({
@@ -343,7 +343,7 @@ exports.getProduct = async (req, res) => {
                 },
             })
             .populate(
-                "recomended_products",
+                "grade",
                 "title slug image"
             );
 
