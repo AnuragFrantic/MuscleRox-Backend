@@ -53,10 +53,10 @@ const productSchema = new Schema(
         // product can recommend zero, one, or several other products, and the
         // very first product created isn't forced to reference one that
         // doesn't exist yet.
-        recomended_products: [
+        grade: [
             {
                 type: Schema.Types.ObjectId,
-                ref: "Product",
+                ref: "Grade",
             },
         ],
 
