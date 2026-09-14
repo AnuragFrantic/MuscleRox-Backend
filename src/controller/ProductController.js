@@ -6,6 +6,7 @@ const Product = require('../models/Product');
 const ApplicationModel = require('../models/Application.model');
 const Setting = require('../models/Setting');
 const mongoose = require("mongoose");
+const GradeModel = require('../models/GradeModel');
 
 const makeSlug = (title) => {
     return title
@@ -285,6 +286,25 @@ exports.getProducts = async (req, res) => {
                 $regex: req.query.search,
                 $options: "i",
             };
+        }
+
+
+        if (req.query.grade) {
+            const grade = await GradeModel.findOne({
+                slug: makeSlug(req.query.grade),
+            }).select("_id");
+
+            // Grade slug doesn't exist
+            if (!grade) {
+                return res.json({
+                    success: 1,
+                    count: 0,
+                    data: [],
+                });
+            }
+
+            // Product grade array must contain this grade
+            filter.grade = grade._id;
         }
 
         const products = await Product.find(filter)
