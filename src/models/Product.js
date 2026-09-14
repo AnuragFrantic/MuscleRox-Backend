@@ -67,6 +67,13 @@ const productSchema = new Schema(
                 required: true,
             },
         ],
+        parent_id: {
+            type: Schema.Types.ObjectId,
+            ref: "Application",
+            required: true,
+        },
+
+
 
         color_range: [
             {

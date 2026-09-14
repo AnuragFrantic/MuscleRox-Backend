@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
@@ -26,7 +25,8 @@ exports.createProduct = async (req, res) => {
             description,
             colors,
             grade,
-            application_id,      // now: array OR comma-separated string of ObjectIds
+            application_id,      // array OR comma-separated string of ObjectIds
+            parent_id,            // single ObjectId — required by schema
             aboutuscontent,
             key_benefit,
             seo_title,
@@ -71,6 +71,16 @@ exports.createProduct = async (req, res) => {
                 ? application_id.split(",").map((item) => item.trim()).filter(Boolean)
                 : application_id || [];
 
+        // basic guard, since this is a required field on the schema and a
+        // missing/invalid value will otherwise surface as an opaque
+        // Mongoose ValidationError
+        if (!parent_id || !mongoose.Types.ObjectId.isValid(parent_id)) {
+            return res.status(400).json({
+                success: 0,
+                message: "parent_id is required and must be a valid ObjectId",
+            });
+        }
+
         const product = await Product.create({
             title,
             slug: makeSlug(title),
@@ -79,6 +89,7 @@ exports.createProduct = async (req, res) => {
             colors,
             grade: normalizedRecommended,
             application_id: normalizedApplicationIds,
+            parent_id,
             image,
             aboutuscontent,
             key_benefit,
@@ -152,6 +163,19 @@ exports.updateProduct = async (req, res) => {
                 .filter(Boolean);
         }
 
+        // parent_id is a single required ObjectId — only touch it if sent,
+        // and reject an invalid value rather than letting it silently fail
+        // the Mongoose validator later
+        if (req.body.parent_id !== undefined) {
+            if (!mongoose.Types.ObjectId.isValid(req.body.parent_id)) {
+                return res.status(400).json({
+                    success: 0,
+                    message: "parent_id must be a valid ObjectId",
+                });
+            }
+            updateData.parent_id = req.body.parent_id;
+        }
+
         // color_range (gallery) gets appended, not replaced — schema field is
         // "color_range", not "images" (that field doesn't exist on this model)
         const uploadedImages = req.files?.color_range || [];
@@ -223,24 +247,17 @@ exports.updateProduct = async (req, res) => {
 exports.getProducts = async (req, res) => {
     try {
         const filter = {};
-        const mongoose = require("mongoose"); // if not already imported at top
 
-        // schema has no category/subcategory fields — products link to a
-        // single application via application_id instead
         if (req.query.application_id) {
             const value = req.query.application_id;
 
-            // support comma-separated list of ids, e.g.
-            // ?application_id=6a9911c1...,6a9911f4...,6a9fdecd...
             const ids = value.split(",").map((v) => v.trim()).filter(Boolean);
 
             const allValid = ids.every((v) => mongoose.Types.ObjectId.isValid(v));
 
             if (allValid) {
-                // array field containing ANY of these ids
                 filter.application_id = ids.length > 1 ? { $in: ids } : ids[0];
             } else {
-                // treat as a slug (only makes sense for a single value)
                 const application = await ApplicationModel.findOne({
                     slug: makeSlug(value),
                 }).select("_id");
@@ -267,6 +284,27 @@ exports.getProducts = async (req, res) => {
             }
 
             filter.application_id = application._id;
+        }
+
+        // filter by top-level category via parent_id (either a direct
+        // ObjectId or a slug lookup against ApplicationModel, same pattern
+        // as applicationSlug above)
+        if (req.query.parent_id) {
+            const value = req.query.parent_id;
+
+            if (mongoose.Types.ObjectId.isValid(value)) {
+                filter.parent_id = value;
+            } else {
+                const parentApplication = await ApplicationModel.findOne({
+                    slug: makeSlug(value),
+                }).select("_id");
+
+                if (!parentApplication) {
+                    return res.json({ success: 1, count: 0, data: [] });
+                }
+
+                filter.parent_id = parentApplication._id;
+            }
         }
 
         if (req.query.colors) {
@@ -300,13 +338,11 @@ exports.getProducts = async (req, res) => {
             };
         }
 
-
         if (req.query.grade) {
             const grade = await GradeModel.findOne({
                 slug: makeSlug(req.query.grade),
             }).select("_id");
 
-            // Grade slug doesn't exist
             if (!grade) {
                 return res.json({
                     success: 1,
@@ -315,13 +351,13 @@ exports.getProducts = async (req, res) => {
                 });
             }
 
-            // Product grade array must contain this grade
             filter.grade = grade._id;
         }
 
         const products = await Product.find(filter)
             .populate("colors", "title slug")
             .populate("application_id", "title slug")
+            .populate("parent_id", "title slug")
             .populate("grade", "title slug image")
             .sort({ sort_order: 1, createdAt: -1 });
 
@@ -339,12 +375,8 @@ exports.getProducts = async (req, res) => {
         });
     }
 };
+
 // GET SINGLE PRODUCT
-
-
-
-
-
 exports.getProduct = async (req, res) => {
     try {
         const { id } = req.params;
@@ -374,6 +406,7 @@ exports.getProduct = async (req, res) => {
                     select: "title slug",
                 },
             })
+            .populate("parent_id", "title slug")
             .populate(
                 "grade",
                 "title slug image"
@@ -400,14 +433,6 @@ exports.getProduct = async (req, res) => {
         });
     }
 };
-
-
-
-
-
-
-
-
 
 // DELETE PRODUCT
 exports.deleteProduct = async (req, res) => {
@@ -447,8 +472,6 @@ exports.deleteProductImage = async (req, res) => {
             return res.status(404).json({ success: 0, message: 'Product not found' });
         }
 
-        // schema field is "color_range", not "images" — that field doesn't
-        // exist on this model, so the old code would throw here
         const imgSub = product.color_range.id(imageId);
         if (!imgSub) {
             return res.status(404).json({ success: 0, message: 'Image not found on this product' });
@@ -460,7 +483,6 @@ exports.deleteProductImage = async (req, res) => {
 
         await product.save();
 
-        // attempt to delete file from disk (ignore errors)
         try {
             const abs = path.resolve(filePath);
             await fsp.unlink(abs).catch(() => { });
@@ -497,6 +519,7 @@ exports.getRelatedProducts = async (req, res) => {
         const products = await Product.find(filter)
             .populate("colors", "title")
             .populate("application_id", "title")
+            .populate("parent_id", "title")
             .sort({ sort_order: 1, createdAt: -1 });
 
         return res.json({
@@ -513,35 +536,3 @@ exports.getRelatedProducts = async (req, res) => {
         });
     }
 };
-
-/*
- * NOTE: `colors` and `application_id` are still `required: true` single
- * ObjectIds on the schema — product creation will fail with a Mongoose
- * validation error if the admin form doesn't send both. Worth confirming
- * that's actually intended before shipping the create form.
- */
-
-
-
-// const deleteProduct = async (req, res) => {
-//     try {
-//         const result = await Product.deleteMany({});
-
-//         return res.json({
-//             success: 1,
-//             message: "Categories and sub-categories deleted successfully",
-//             deletedCount: result.deletedCount
-//         });
-
-//     } catch (err) {
-//         return res.status(500).json({
-//             success: 0,
-//             message: err.message
-//         });
-//     }
-// };
-
-// deleteProduct()
-
-
-
