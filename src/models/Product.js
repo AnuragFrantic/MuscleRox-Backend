@@ -60,11 +60,13 @@ const productSchema = new Schema(
             },
         ],
 
-        application_id: {
-            type: Schema.Types.ObjectId,
-            ref: "Application",
-            required: true,
-        },
+        application_id: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Application",
+                required: true,
+            },
+        ],
 
         color_range: [
             {
@@ -118,5 +120,6 @@ const productSchema = new Schema(
         timestamps: true,
     }
 );
+
 
 module.exports = mongoose.model("Product", productSchema);

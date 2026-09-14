@@ -24,9 +24,9 @@ exports.createProduct = async (req, res) => {
             title,
             short_description,
             description,
-            colors,              // Setting ref, single ObjectId (required in schema)
-            grade, // Product ref, array of ObjectIds (optional)
-            application_id,      // Application ref, single ObjectId (required in schema)
+            colors,
+            grade,
+            application_id,      // now: array OR comma-separated string of ObjectIds
             aboutuscontent,
             key_benefit,
             seo_title,
@@ -35,7 +35,6 @@ exports.createProduct = async (req, res) => {
             sort_order,
         } = req.body;
 
-        // multiple gallery images -> array of { path, filename, file_type }
         const uploadedImages = req.files?.color_range || [];
 
         const color_range = uploadedImages.map((f) => ({
@@ -56,17 +55,21 @@ exports.createProduct = async (req, res) => {
                 file: file.path.replace(/\\/g, "/"),
             })) || [];
 
-        // schema's "image" is a single main image, separate from the color_range gallery
         const image = req.files?.image?.[0]
             ? req.files.image[0].path.replace(/\\/g, "/")
             : undefined;
 
-        // grade can arrive as a real array (JSON body) or a
-        // comma-separated string (multipart form field) — normalize both
         const normalizedRecommended =
             typeof grade === "string"
                 ? grade.split(",").map((item) => item.trim()).filter(Boolean)
                 : grade || [];
+
+        // application_id can arrive as a real array (JSON body) or a
+        // comma-separated string (multipart form field), same as grade
+        const normalizedApplicationIds =
+            typeof application_id === "string"
+                ? application_id.split(",").map((item) => item.trim()).filter(Boolean)
+                : application_id || [];
 
         const product = await Product.create({
             title,
@@ -75,7 +78,7 @@ exports.createProduct = async (req, res) => {
             description,
             colors,
             grade: normalizedRecommended,
-            application_id,
+            application_id: normalizedApplicationIds,
             image,
             aboutuscontent,
             key_benefit,
@@ -98,7 +101,6 @@ exports.createProduct = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-
         return res.status(500).json({
             success: 0,
             message: error.message,
@@ -137,6 +139,14 @@ exports.updateProduct = async (req, res) => {
 
         if (typeof req.body.grade === "string") {
             updateData.grade = req.body.grade
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+
+        // application_id: normalize comma-separated string to array, same as grade
+        if (typeof req.body.application_id === "string") {
+            updateData.application_id = req.body.application_id
                 .split(",")
                 .map((item) => item.trim())
                 .filter(Boolean);
@@ -220,21 +230,23 @@ exports.getProducts = async (req, res) => {
         if (req.query.application_id) {
             const value = req.query.application_id;
 
-            if (mongoose.Types.ObjectId.isValid(value)) {
-                // looks like a real ObjectId — use it directly
-                filter.application_id = value;
+            // support comma-separated list of ids, e.g.
+            // ?application_id=6a9911c1...,6a9911f4...,6a9fdecd...
+            const ids = value.split(",").map((v) => v.trim()).filter(Boolean);
+
+            const allValid = ids.every((v) => mongoose.Types.ObjectId.isValid(v));
+
+            if (allValid) {
+                // array field containing ANY of these ids
+                filter.application_id = ids.length > 1 ? { $in: ids } : ids[0];
             } else {
-                // treat it as a slug, e.g. ?application_id=water-based
+                // treat as a slug (only makes sense for a single value)
                 const application = await ApplicationModel.findOne({
                     slug: makeSlug(value),
                 }).select("_id");
 
                 if (!application) {
-                    return res.json({
-                        success: 1,
-                        count: 0,
-                        data: [],
-                    });
+                    return res.json({ success: 1, count: 0, data: [] });
                 }
 
                 filter.application_id = application._id;
@@ -530,3 +542,6 @@ exports.getRelatedProducts = async (req, res) => {
 // };
 
 // deleteProduct()
+
+
+
