@@ -248,28 +248,43 @@ exports.getProducts = async (req, res) => {
     try {
         const filter = {};
 
+        // Filter by application
         if (req.query.application_id) {
             const value = req.query.application_id;
 
-            const ids = value.split(",").map((v) => v.trim()).filter(Boolean);
+            const ids = value
+                .split(",")
+                .map((v) => v.trim())
+                .filter(Boolean);
 
-            const allValid = ids.every((v) => mongoose.Types.ObjectId.isValid(v));
+            const allValid = ids.every((v) =>
+                mongoose.Types.ObjectId.isValid(v)
+            );
 
             if (allValid) {
-                filter.application_id = ids.length > 1 ? { $in: ids } : ids[0];
+                filter.application_id = {
+                    $in: ids,
+                };
             } else {
                 const application = await ApplicationModel.findOne({
                     slug: makeSlug(value),
                 }).select("_id");
 
                 if (!application) {
-                    return res.json({ success: 1, count: 0, data: [] });
+                    return res.json({
+                        success: 1,
+                        count: 0,
+                        data: [],
+                    });
                 }
 
-                filter.application_id = application._id;
+                filter.application_id = {
+                    $in: [application._id],
+                };
             }
         }
 
+        // Filter by application slug
         if (req.query.applicationSlug) {
             const application = await ApplicationModel.findOne({
                 slug: makeSlug(req.query.applicationSlug),
@@ -283,12 +298,12 @@ exports.getProducts = async (req, res) => {
                 });
             }
 
-            filter.application_id = application._id;
+            filter.application_id = {
+                $in: [application._id],
+            };
         }
 
-        // filter by top-level category via parent_id (either a direct
-        // ObjectId or a slug lookup against ApplicationModel, same pattern
-        // as applicationSlug above)
+        // Filter by parent
         if (req.query.parent_id) {
             const value = req.query.parent_id;
 
@@ -300,13 +315,18 @@ exports.getProducts = async (req, res) => {
                 }).select("_id");
 
                 if (!parentApplication) {
-                    return res.json({ success: 1, count: 0, data: [] });
+                    return res.json({
+                        success: 1,
+                        count: 0,
+                        data: [],
+                    });
                 }
 
                 filter.parent_id = parentApplication._id;
             }
         }
 
+        // Filter by color
         if (req.query.colors) {
             const colorSetting = await Setting.findOne({
                 title: req.query.colors,
@@ -323,14 +343,17 @@ exports.getProducts = async (req, res) => {
             filter.colors = colorSetting._id;
         }
 
+        // Filter by slug
         if (req.query.slug) {
             filter.slug = req.query.slug;
         }
 
+        // Filter by active status
         if (req.query.isActive !== undefined) {
             filter.isActive = req.query.isActive;
         }
 
+        // Search by title
         if (req.query.search) {
             filter.title = {
                 $regex: req.query.search,
@@ -338,6 +361,7 @@ exports.getProducts = async (req, res) => {
             };
         }
 
+        // Filter by grade
         if (req.query.grade) {
             const grade = await GradeModel.findOne({
                 slug: makeSlug(req.query.grade),
@@ -351,15 +375,22 @@ exports.getProducts = async (req, res) => {
                 });
             }
 
-            filter.grade = grade._id;
+            filter.grade = {
+                $in: [grade._id],
+            };
         }
+
+        console.log("FINAL FILTER:", JSON.stringify(filter, null, 2));
 
         const products = await Product.find(filter)
             .populate("colors", "title slug")
             .populate("application_id", "title slug")
             .populate("parent_id", "title slug")
             .populate("grade", "title slug image")
-            .sort({ sort_order: 1, createdAt: -1 });
+            .sort({
+                sort_order: 1,
+                createdAt: -1,
+            });
 
         return res.json({
             success: 1,
