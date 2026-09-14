@@ -248,7 +248,9 @@ exports.getProducts = async (req, res) => {
     try {
         const filter = {};
 
-        // Filter by application
+        // ---------------------------------------
+        // Filter by application_id
+        // ---------------------------------------
         if (req.query.application_id) {
             const value = req.query.application_id;
 
@@ -266,11 +268,13 @@ exports.getProducts = async (req, res) => {
                     $in: ids,
                 };
             } else {
-                const application = await ApplicationModel.findOne({
-                    slug: makeSlug(value),
+                const applications = await ApplicationModel.find({
+                    slug: {
+                        $in: ids.map((v) => makeSlug(v)),
+                    },
                 }).select("_id");
 
-                if (!application) {
+                if (!applications.length) {
                     return res.json({
                         success: 1,
                         count: 0,
@@ -279,12 +283,14 @@ exports.getProducts = async (req, res) => {
                 }
 
                 filter.application_id = {
-                    $in: [application._id],
+                    $in: applications.map((app) => app._id),
                 };
             }
         }
 
-        // Filter by application slug
+        // ---------------------------------------
+        // Filter by applicationSlug
+        // ---------------------------------------
         if (req.query.applicationSlug) {
             const application = await ApplicationModel.findOne({
                 slug: makeSlug(req.query.applicationSlug),
@@ -303,7 +309,9 @@ exports.getProducts = async (req, res) => {
             };
         }
 
-        // Filter by parent
+        // ---------------------------------------
+        // Filter by parent_id
+        // ---------------------------------------
         if (req.query.parent_id) {
             const value = req.query.parent_id;
 
@@ -326,7 +334,9 @@ exports.getProducts = async (req, res) => {
             }
         }
 
-        // Filter by color
+        // ---------------------------------------
+        // Filter by colors
+        // ---------------------------------------
         if (req.query.colors) {
             const colorSetting = await Setting.findOne({
                 title: req.query.colors,
@@ -343,17 +353,23 @@ exports.getProducts = async (req, res) => {
             filter.colors = colorSetting._id;
         }
 
-        // Filter by slug
+        // ---------------------------------------
+        // Filter by product slug
+        // ---------------------------------------
         if (req.query.slug) {
             filter.slug = req.query.slug;
         }
 
+        // ---------------------------------------
         // Filter by active status
+        // ---------------------------------------
         if (req.query.isActive !== undefined) {
             filter.isActive = req.query.isActive;
         }
 
-        // Search by title
+        // ---------------------------------------
+        // Search by product title
+        // ---------------------------------------
         if (req.query.search) {
             filter.title = {
                 $regex: req.query.search,
@@ -361,27 +377,57 @@ exports.getProducts = async (req, res) => {
             };
         }
 
+        // ---------------------------------------
         // Filter by grade
+        // ---------------------------------------
         if (req.query.grade) {
-            const grade = await GradeModel.findOne({
-                slug: makeSlug(req.query.grade),
-            }).select("_id");
+            const value = req.query.grade;
 
-            if (!grade) {
-                return res.json({
-                    success: 1,
-                    count: 0,
-                    data: [],
-                });
+            const grades = value
+                .split(",")
+                .map((v) => v.trim())
+                .filter(Boolean);
+
+            const allValid = grades.every((v) =>
+                mongoose.Types.ObjectId.isValid(v)
+            );
+
+            if (allValid) {
+                filter.grade = {
+                    $in: grades,
+                };
+            } else {
+                const gradeDocuments = await GradeModel.find({
+                    slug: {
+                        $in: grades.map((v) => makeSlug(v)),
+                    },
+                }).select("_id");
+
+                if (!gradeDocuments.length) {
+                    return res.json({
+                        success: 1,
+                        count: 0,
+                        data: [],
+                    });
+                }
+
+                filter.grade = {
+                    $in: gradeDocuments.map((grade) => grade._id),
+                };
             }
-
-            filter.grade = {
-                $in: [grade._id],
-            };
         }
 
-        console.log("FINAL FILTER:", JSON.stringify(filter, null, 2));
+        // ---------------------------------------
+        // Debug filter
+        // ---------------------------------------
+        console.log(
+            "FINAL PRODUCT FILTER:",
+            JSON.stringify(filter, null, 2)
+        );
 
+        // ---------------------------------------
+        // Get products
+        // ---------------------------------------
         const products = await Product.find(filter)
             .populate("colors", "title slug")
             .populate("application_id", "title slug")
@@ -392,13 +438,16 @@ exports.getProducts = async (req, res) => {
                 createdAt: -1,
             });
 
+        // ---------------------------------------
+        // Response
+        // ---------------------------------------
         return res.json({
             success: 1,
             count: products.length,
             data: products,
         });
     } catch (error) {
-        console.log(error);
+        console.log("GET PRODUCTS ERROR:", error);
 
         return res.status(500).json({
             success: 0,
