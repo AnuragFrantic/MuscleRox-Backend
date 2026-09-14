@@ -46,7 +46,7 @@ const productSchema = new Schema(
         colors: {
             type: Schema.Types.ObjectId,
             ref: "Setting",
-            required: true,
+            // required: true,
         },
 
         // was a single required ObjectId — changed to an optional array so a
