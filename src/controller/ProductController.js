@@ -417,13 +417,7 @@ exports.getProducts = async (req, res) => {
             }
         }
 
-        // ---------------------------------------
-        // Debug filter
-        // ---------------------------------------
-        console.log(
-            "FINAL PRODUCT FILTER:",
-            JSON.stringify(filter, null, 2)
-        );
+
 
         // ---------------------------------------
         // Get products
@@ -447,7 +441,7 @@ exports.getProducts = async (req, res) => {
             data: products,
         });
     } catch (error) {
-        console.log("GET PRODUCTS ERROR:", error);
+
 
         return res.status(500).json({
             success: 0,

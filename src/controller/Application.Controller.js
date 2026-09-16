@@ -247,8 +247,7 @@ exports.get_application = async (req, res) => {
                 (item) => item._id
             );
 
-            console.log("GRAND PARENT SLUGS:", grandParentSlugs);
-            console.log("GRAND PARENT IDS:", grandParentIds);
+
 
             fdata.grand_parent_id = {
                 $in: grandParentIds,
@@ -273,8 +272,7 @@ exports.get_application = async (req, res) => {
                 (item) => item._id
             );
 
-            console.log("PARENT SLUGS:", parentSlugs);
-            console.log("PARENT IDS:", parentIds);
+
 
             fdata.parent_id = {
                 $in: parentIds,
@@ -340,7 +338,7 @@ exports.get_application = async (req, res) => {
         const limit = Math.max(Number(perPage), 1);
         const skip = (currentPage - 1) * limit;
 
-        console.log("FINAL FILTER:", fdata);
+
 
         // =========================
         // FETCH
