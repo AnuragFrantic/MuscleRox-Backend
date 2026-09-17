@@ -463,9 +463,7 @@ exports.update_application = async (req, res) => {
         }
 
 
-        console.log("UPDATE BODY:", body);
-        console.log("UPDATE FILES:", req.files);
-        console.log("UPDATE DATA:", data);
+
 
 
         // =========================
