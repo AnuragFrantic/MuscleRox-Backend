@@ -11,7 +11,6 @@ const router = Router();
 
 router.post(
     "/",
-    { timeout: 0 },
     Store("any").fields([
         { name: "images", maxCount: 20 },
     ]),
