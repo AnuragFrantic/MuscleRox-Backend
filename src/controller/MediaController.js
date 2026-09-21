@@ -12,6 +12,7 @@ const makeSlug = (title) => {
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
+const { compressFiles } = require("../services/compressFiles");
 
 // CREATE MEDIA
 exports.createMedia = async (req, res) => {
@@ -54,11 +55,13 @@ exports.createMedia = async (req, res) => {
             sort_order,
         });
 
-        return res.status(201).json({
+        res.status(201).json({
             success: 1,
             message: "Media created successfully",
             data: media,
         });
+        compressFiles(uploadedFiles).catch(console.error);
+        return;
     } catch (error) {
         console.log(error);
 
@@ -127,11 +130,14 @@ exports.updateMedia = async (req, res) => {
             );
         }
 
-        return res.json({
+        res.json({
             success: 1,
             message: "Media updated successfully",
             data: updatedMedia,
         });
+
+        compressFiles(uploaded).catch(console.error);
+        return;
     } catch (error) {
         console.log(error);
 

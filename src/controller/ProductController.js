@@ -6,6 +6,9 @@ const ApplicationModel = require('../models/Application.model');
 const Setting = require('../models/Setting');
 const mongoose = require("mongoose");
 const GradeModel = require('../models/GradeModel');
+const { compressFiles } = require('../services/compressFiles');
+
+const getAllUploadedFiles = (req) => Object.values(req.files || {}).flat();
 
 const makeSlug = (title) => {
     return title
@@ -36,6 +39,8 @@ exports.createProduct = async (req, res) => {
         } = req.body;
 
         const uploadedImages = req.files?.color_range || [];
+
+
 
         const color_range = uploadedImages.map((f) => ({
             path: f.path.replace(/\\/g, "/"),
@@ -105,11 +110,15 @@ exports.createProduct = async (req, res) => {
             sort_order,
         });
 
-        return res.status(201).json({
+        res.status(201).json({
             success: 1,
             message: "Product created successfully",
             data: product,
         });
+
+
+        compressFiles(getAllUploadedFiles(req)).catch(console.error);
+        return;
     } catch (error) {
         console.log(error);
         return res.status(500).json({
@@ -228,11 +237,13 @@ exports.updateProduct = async (req, res) => {
             );
         }
 
-        return res.json({
+        res.json({
             success: 1,
             message: "Product updated successfully",
             data: updatedProduct,
         });
+        compressFiles(getAllUploadedFiles(req)).catch(console.error);
+        return;
     } catch (error) {
         console.log(error);
 

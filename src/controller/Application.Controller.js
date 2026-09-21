@@ -297,8 +297,7 @@ exports.get_application = async (req, res) => {
                 (item) => item._id
             );
 
-            console.log("GRADE SLUGS:", gradeSlugs);
-            console.log("GRADE IDS:", gradeIds);
+
 
             fdata.grade = {
                 $in: gradeIds,
