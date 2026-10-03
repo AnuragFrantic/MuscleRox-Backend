@@ -67,13 +67,12 @@ exports.create_application = async (req, res) => {
             });
         }
 
-        console.log("REQ.BODY:", body);
-        console.log("REQ.FILES:", req.files);
+
 
 
         const data = {
             ...body,
-            color: body.color || null,
+            color: convertToArray(body.color),
 
             slug: body.slug
                 ? body.slug
@@ -322,8 +321,7 @@ exports.get_application = async (req, res) => {
                 (item) => item._id
             );
 
-            console.log("COLOR SLUGS:", colorSlugs);
-            console.log("COLOR IDS:", colorIds);
+
 
             fdata.color = {
                 $in: colorIds,
@@ -364,7 +362,15 @@ exports.get_application = async (req, res) => {
                 .lean(),
 
             ApplicationModel.countDocuments(fdata),
+
+
         ]);
+
+        resp.forEach((item) => {
+            if (!Array.isArray(item.color)) {
+                item.color = item.color ? [item.color] : [];
+            }
+        });
 
         return res.json({
             success: 1,
@@ -421,8 +427,8 @@ exports.update_application = async (req, res) => {
         }
 
 
-        if (body.color != undefined) {
-            data.color = body.color;
+        if (body.color !== undefined) {
+            data.color = convertToArray(body.color);
         }
 
 

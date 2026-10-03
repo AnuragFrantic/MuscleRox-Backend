@@ -23,11 +23,12 @@ const schema = new Schema(
                 default: [],
             },
         ],
-        color: {
-            type: Schema.Types.ObjectId,
-            ref: "Setting",
-            default: [],
-        },
+        color: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Setting",
+            },
+        ],
 
 
 

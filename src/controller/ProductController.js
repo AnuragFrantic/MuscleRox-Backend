@@ -255,9 +255,240 @@ exports.updateProduct = async (req, res) => {
 };
 
 // GET ALL PRODUCTS
+// exports.getProducts = async (req, res) => {
+//     try {
+//         const filter = {};
+
+//         // ---------------------------------------
+//         // Filter by application_id
+//         // ---------------------------------------
+//         if (req.query.application_id) {
+//             const value = req.query.application_id;
+
+//             const ids = value
+//                 .split(",")
+//                 .map((v) => v.trim())
+//                 .filter(Boolean);
+
+//             const allValid = ids.every((v) =>
+//                 mongoose.Types.ObjectId.isValid(v)
+//             );
+
+//             if (allValid) {
+//                 filter.application_id = {
+//                     $in: ids,
+//                 };
+//             } else {
+//                 const applications = await ApplicationModel.find({
+//                     slug: {
+//                         $in: ids.map((v) => makeSlug(v)),
+//                     },
+//                 }).select("_id");
+
+//                 if (!applications.length) {
+//                     return res.json({
+//                         success: 1,
+//                         count: 0,
+//                         data: [],
+//                     });
+//                 }
+
+//                 filter.application_id = {
+//                     $in: applications.map((app) => app._id),
+//                 };
+//             }
+//         }
+
+//         // ---------------------------------------
+//         // Filter by applicationSlug
+//         // ---------------------------------------
+//         if (req.query.applicationSlug) {
+//             const application = await ApplicationModel.findOne({
+//                 slug: makeSlug(req.query.applicationSlug),
+//             }).select("_id");
+
+//             if (!application) {
+//                 return res.json({
+//                     success: 1,
+//                     count: 0,
+//                     data: [],
+//                 });
+//             }
+
+//             filter.application_id = {
+//                 $in: [application._id],
+//             };
+//         }
+
+//         // ---------------------------------------
+//         // Filter by parent_id
+//         // ---------------------------------------
+//         if (req.query.parent_id) {
+//             const value = req.query.parent_id;
+
+//             if (mongoose.Types.ObjectId.isValid(value)) {
+//                 filter.parent_id = value;
+//             } else {
+//                 const parentApplication = await ApplicationModel.findOne({
+//                     slug: makeSlug(value),
+//                 }).select("_id");
+
+//                 if (!parentApplication) {
+//                     return res.json({
+//                         success: 1,
+//                         count: 0,
+//                         data: [],
+//                     });
+//                 }
+
+//                 filter.parent_id = parentApplication._id;
+//             }
+//         }
+
+//         // ---------------------------------------
+//         // Filter by colors
+//         // ---------------------------------------
+//         if (req.query.colors) {
+//             const colorSetting = await Setting.findOne({
+//                 title: req.query.colors,
+//             }).select("_id");
+
+//             if (!colorSetting) {
+//                 return res.json({
+//                     success: 1,
+//                     count: 0,
+//                     data: [],
+//                 });
+//             }
+
+//             filter.colors = colorSetting._id;
+//         }
+
+//         // ---------------------------------------
+//         // Filter by product slug
+//         // ---------------------------------------
+//         if (req.query.slug) {
+//             filter.slug = req.query.slug;
+//         }
+
+//         // ---------------------------------------
+//         // Filter by active status
+//         // ---------------------------------------
+//         if (req.query.isActive !== undefined) {
+//             filter.isActive = req.query.isActive;
+//         }
+
+//         // ---------------------------------------
+//         // Search by product title
+//         // ---------------------------------------
+//         if (req.query.search) {
+//             filter.title = {
+//                 $regex: req.query.search,
+//                 $options: "i",
+//             };
+//         }
+
+//         // ---------------------------------------
+//         // Filter by grade
+//         // ---------------------------------------
+//         if (req.query.grade) {
+//             const value = req.query.grade;
+
+//             const grades = value
+//                 .split(",")
+//                 .map((v) => v.trim())
+//                 .filter(Boolean);
+
+//             const allValid = grades.every((v) =>
+//                 mongoose.Types.ObjectId.isValid(v)
+//             );
+
+//             if (allValid) {
+//                 filter.grade = {
+//                     $in: grades,
+//                 };
+//             } else {
+//                 const gradeDocuments = await GradeModel.find({
+//                     slug: {
+//                         $in: grades.map((v) => makeSlug(v)),
+//                     },
+//                 }).select("_id");
+
+//                 if (!gradeDocuments.length) {
+//                     return res.json({
+//                         success: 1,
+//                         count: 0,
+//                         data: [],
+//                     });
+//                 }
+
+//                 filter.grade = {
+//                     $in: gradeDocuments.map((grade) => grade._id),
+//                 };
+//             }
+//         }
+
+
+
+//         // ---------------------------------------
+//         // Get products
+//         // ---------------------------------------
+//         const products = await Product.find(filter)
+//             .populate("colors", "title slug")
+//             .populate("application_id", "title slug")
+//             .populate("parent_id", "title slug")
+//             .populate("grade", "title slug image")
+//             .sort({
+//                 sort_order: 1,
+//                 createdAt: -1,
+//             });
+
+//         // ---------------------------------------
+//         // Response
+//         // ---------------------------------------
+//         return res.json({
+//             success: 1,
+//             count: products.length,
+//             data: products,
+//         });
+//     } catch (error) {
+
+
+//         return res.status(500).json({
+//             success: 0,
+//             message: error.message,
+//         });
+//     }
+// };
+
+// GET ALL PRODUCTS
 exports.getProducts = async (req, res) => {
     try {
         const filter = {};
+
+        // ---------------------------------------
+        // Pagination
+        // ---------------------------------------
+        const currentPage = Math.max(Number(req.query.page) || 1, 1);
+        const limit = Math.max(Number(req.query.perPage) || 10, 1);
+        const skip = (currentPage - 1) * limit;
+
+        // ---------------------------------------
+        // Empty response (when a filter matches nothing)
+        // ---------------------------------------
+        const sendEmpty = () =>
+            res.json({
+                success: 1,
+                message: "Products fetched successfully",
+                count: 0,
+                data: [],
+                pagination: {
+                    page: currentPage,
+                    perPage: limit,
+                    total: 0,
+                    totalPages: 0,
+                },
+            });
 
         // ---------------------------------------
         // Filter by application_id
@@ -286,11 +517,7 @@ exports.getProducts = async (req, res) => {
                 }).select("_id");
 
                 if (!applications.length) {
-                    return res.json({
-                        success: 1,
-                        count: 0,
-                        data: [],
-                    });
+                    return sendEmpty();
                 }
 
                 filter.application_id = {
@@ -308,11 +535,7 @@ exports.getProducts = async (req, res) => {
             }).select("_id");
 
             if (!application) {
-                return res.json({
-                    success: 1,
-                    count: 0,
-                    data: [],
-                });
+                return sendEmpty();
             }
 
             filter.application_id = {
@@ -334,11 +557,7 @@ exports.getProducts = async (req, res) => {
                 }).select("_id");
 
                 if (!parentApplication) {
-                    return res.json({
-                        success: 1,
-                        count: 0,
-                        data: [],
-                    });
+                    return sendEmpty();
                 }
 
                 filter.parent_id = parentApplication._id;
@@ -354,11 +573,7 @@ exports.getProducts = async (req, res) => {
             }).select("_id");
 
             if (!colorSetting) {
-                return res.json({
-                    success: 1,
-                    count: 0,
-                    data: [],
-                });
+                return sendEmpty();
             }
 
             filter.colors = colorSetting._id;
@@ -415,11 +630,7 @@ exports.getProducts = async (req, res) => {
                 }).select("_id");
 
                 if (!gradeDocuments.length) {
-                    return res.json({
-                        success: 1,
-                        count: 0,
-                        data: [],
-                    });
+                    return sendEmpty();
                 }
 
                 filter.grade = {
@@ -428,32 +639,41 @@ exports.getProducts = async (req, res) => {
             }
         }
 
-
-
         // ---------------------------------------
-        // Get products
+        // Get products + total count
         // ---------------------------------------
-        const products = await Product.find(filter)
-            .populate("colors", "title slug")
-            .populate("application_id", "title slug")
-            .populate("parent_id", "title slug")
-            .populate("grade", "title slug image")
-            .sort({
-                sort_order: 1,
-                createdAt: -1,
-            });
+        const [products, total] = await Promise.all([
+            Product.find(filter)
+                .populate("colors", "title slug")
+                .populate("application_id", "title slug")
+                .populate("parent_id", "title slug")
+                .populate("grade", "title slug image")
+                .sort({
+                    sort_order: 1,
+                    createdAt: -1,
+                })
+                .skip(skip)
+                .limit(limit),
+
+            Product.countDocuments(filter),
+        ]);
 
         // ---------------------------------------
         // Response
         // ---------------------------------------
         return res.json({
             success: 1,
+            message: "Products fetched successfully",
             count: products.length,
             data: products,
+            pagination: {
+                page: currentPage,
+                perPage: limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
         });
     } catch (error) {
-
-
         return res.status(500).json({
             success: 0,
             message: error.message,
