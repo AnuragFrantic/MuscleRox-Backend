@@ -51,6 +51,8 @@ const userRoute = require('./routes/userRoutes');
 const appRoute = require('./routes/AppRoutes');
 const productRoute = require('./routes/productRoute');
 const testimonialRoute = require('./routes/Testimonial.routes');
+const colorRangeRoute = require('./routes/colorsRange.routes');
+
 
 // const offerRoute = require('./routes/offer.routes');
 
@@ -120,6 +122,8 @@ app.use("/api/v1/application", ApplicationRoutes);
 
 
 app.use('/api/v1/job', JobRoutes);
+app.use('/api/v1/colors-range', colorRangeRoute);
+
 
 
 
