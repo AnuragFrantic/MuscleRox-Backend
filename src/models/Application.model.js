@@ -16,6 +16,13 @@ const schema = new Schema(
                 default: [],
             },
         ],
+        sub_categories: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Setting",
+                default: [],
+            },
+        ],
         grade: [
             {
                 type: Schema.Types.ObjectId,

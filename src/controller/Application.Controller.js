@@ -86,6 +86,10 @@ exports.create_application = async (req, res) => {
                 body.parent_id
             ),
 
+            sub_categories: convertToArray(
+                body.sub_categories
+            ),
+
             grade: convertToArray(
                 body.grade
             ),
@@ -344,6 +348,7 @@ exports.get_application = async (req, res) => {
             ApplicationModel.find(fdata)
                 .populate("grand_parent_id")
                 .populate("parent_id")
+                .populate("sub_categories")
                 .populate({
                     path: "grade",
                     select: "title slug parent",
@@ -441,6 +446,12 @@ exports.update_application = async (req, res) => {
             );
         }
 
+        if (body.sub_categories !== undefined) {
+            data.sub_categories = convertToArray(
+                body.sub_categories
+            );
+        }
+
 
         // =========================
         // GRADE
@@ -489,6 +500,7 @@ exports.update_application = async (req, res) => {
             )
                 .populate("grand_parent_id")
                 .populate("parent_id")
+                .populate("sub_categories")
                 .populate("grade");
 
 
